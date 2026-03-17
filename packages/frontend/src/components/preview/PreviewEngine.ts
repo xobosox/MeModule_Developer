@@ -13,7 +13,7 @@ export async function initEsbuild(): Promise<void> {
 
   initPromise = esbuild
     .initialize({
-      wasmURL: "https://unpkg.com/esbuild-wasm@0.25.0/esbuild.wasm",
+      wasmURL: `https://unpkg.com/esbuild-wasm@${esbuild.version}/esbuild.wasm`,
     })
     .then(() => {
       initialized = true;

@@ -8,7 +8,7 @@ import {
   updateProject,
   deleteProject,
 } from "../db/queries.js";
-import { createConversation } from "../db/queries.js";
+import { createConversation, getConversationByProjectId } from "../db/queries.js";
 
 const projects = new Hono<AppEnv>();
 
@@ -59,6 +59,14 @@ projects.post("/", async (c) => {
 projects.get("/:id", async (c) => {
   const project = await getAuthorizedProject(c, c.req.param("id"));
   return c.json(project);
+});
+
+// Get conversation for a project
+projects.get("/:id/conversation", async (c) => {
+  const sql = c.get("sql");
+  await getAuthorizedProject(c, c.req.param("id"));
+  const conversation = await getConversationByProjectId(sql, c.req.param("id"));
+  return c.json(conversation ?? { messages: [] });
 });
 
 // Update project

@@ -7,6 +7,7 @@ interface ChatState {
   isStreaming: boolean;
   error: string | null;
   addUserMessage: (content: string) => void;
+  loadMessages: (messages: Array<{ role: string; content: string; timestamp: string }>) => void;
   startStreaming: () => void;
   appendStreamContent: (content: string) => void;
   finalizeStream: () => void;
@@ -19,6 +20,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
   streamingContent: "",
   isStreaming: false,
   error: null,
+
+  loadMessages: (msgs: Array<{ role: string; content: string; timestamp: string }>) => {
+    const messages: ChatMessage[] = msgs
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .filter((m) => m.content && m.content.length > 0)
+      .map((m) => ({
+        id: crypto.randomUUID(),
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        timestamp: new Date(m.timestamp).getTime(),
+      }));
+    set({ messages, error: null });
+  },
 
   addUserMessage: (content: string) => {
     const message: ChatMessage = {

@@ -64,6 +64,12 @@ export const api = {
     return request<Project>(`/api/projects/${id}`);
   },
 
+  getConversation(projectId: string) {
+    return request<{ messages: Array<{ role: string; content: string; timestamp: string }> }>(
+      `/api/projects/${projectId}/conversation`
+    );
+  },
+
   updateProject(id: string, data: Partial<Project>) {
     return request<Project>(`/api/projects/${id}`, {
       method: "PUT",

@@ -21,7 +21,7 @@ export default function Workspace() {
   const [isConnected, setIsConnected] = useState(false);
 
   const { currentProject, loadProject, updateFile } = useProjectStore();
-  const { addUserMessage, startStreaming, appendStreamContent, finalizeStream, setError, clearMessages } =
+  const { addUserMessage, startStreaming, appendStreamContent, finalizeStream, setError, clearMessages, loadMessages } =
     useChatStore();
   const { activeTab, setActiveTab, planContent, setPlanContent, designContent, setDesignContent, phase, activeAgent, setPhase, setActiveAgent, reset } =
     useWorkspaceStore();
@@ -31,7 +31,24 @@ export default function Workspace() {
 
     loadProject(id);
     reset();
-    clearMessages();
+
+    // Load conversation history from server
+    import("../lib/api-client").then(({ api }) => {
+      api.getConversation(id).then((convo) => {
+        if (convo.messages && convo.messages.length > 0) {
+          loadMessages(convo.messages);
+        }
+      }).catch(() => {
+        // No conversation yet, start fresh
+        clearMessages();
+      });
+
+      // Load plan/design content from project
+      api.getProject(id).then((project) => {
+        if (project.plan_content) setPlanContent(project.plan_content);
+        if (project.design_content) setDesignContent(project.design_content);
+      }).catch(() => {});
+    });
 
     const client = new WsClient(id);
     wsRef.current = client;
