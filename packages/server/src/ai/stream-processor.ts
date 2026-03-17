@@ -55,7 +55,7 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
 
   const stream = client.messages.stream({
     model,
-    max_tokens: 16384,
+    max_tokens: 32768,
     system: systemPrompt,
     messages,
     tools: params.tools ?? toolDefinitions,
@@ -81,12 +81,24 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
       break;
     }
 
+    // Log message_start to see stop_reason
+    if (event.type === "message_start") {
+      console.log("Message start:", JSON.stringify((event as any).message?.usage));
+    }
+    if (event.type === "message_stop" || (event as any).type === "message_delta") {
+      const delta = (event as any).delta;
+      if (delta?.stop_reason) {
+        console.log(`Message ended: stop_reason=${delta.stop_reason}, usage=${JSON.stringify((event as any).usage)}`);
+      }
+    }
+
     switch (event.type) {
       case "content_block_start": {
         currentTextContent = "";
         currentToolName = "";
         currentToolInput = "";
         if (event.content_block.type === "tool_use") {
+          console.log(`Tool call started: ${event.content_block.name}`);
           currentToolName = event.content_block.name;
         }
         break;

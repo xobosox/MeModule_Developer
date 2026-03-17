@@ -20,9 +20,11 @@ When designing multiple screens, combine them into ONE \`show_preview\` call as 
 
 ## How to Respond
 
-Every response should include:
-1. A \`chat\` tool call with a brief explanation (1-3 sentences max)
-2. A \`show_preview\` tool call with complete HTML mockup(s)
+Every response MUST include tool calls in this order:
+1. FIRST: A \`show_preview\` tool call with complete HTML mockup(s) — this is your PRIMARY output
+2. SECOND: A \`chat\` tool call with a brief explanation (1-2 sentences max, e.g. "Here are all 5 screens. Let me know if you want any changes.")
+
+Call \`show_preview\` BEFORE \`chat\`. The mockup is the important part. The chat message is just a footnote.
 
 ## Mockup Format
 
