@@ -10,6 +10,7 @@ import TabBar from "../components/tabs/TabBar";
 import PlanTab from "../components/tabs/PlanTab";
 import CodeTab from "../components/tabs/CodeTab";
 import PreviewTab from "../components/tabs/PreviewTab";
+import PhaseIndicator from "../components/workspace/PhaseIndicator";
 
 export default function Workspace() {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +21,7 @@ export default function Workspace() {
   const { currentProject, loadProject, updateFile } = useProjectStore();
   const { addUserMessage, startStreaming, appendStreamContent, finalizeStream, setError, clearMessages } =
     useChatStore();
-  const { activeTab, setActiveTab, planContent, setPlanContent, setPreviewContent, reset } =
+  const { activeTab, setActiveTab, planContent, setPlanContent, setPreviewContent, phase, activeAgent, setPhase, setActiveAgent, reset } =
     useWorkspaceStore();
 
   useEffect(() => {
@@ -64,6 +65,23 @@ export default function Workspace() {
         case "error":
           setError(msg.message || "An error occurred");
           break;
+        case "phase_changed":
+          if (msg.phase) setPhase(msg.phase as any);
+          setActiveAgent(msg.agent ?? null);
+          break;
+        case "review_started":
+          appendStreamContent("\n_Reviewing..._\n");
+          break;
+        case "review_complete":
+          if (msg.passed === false && msg.issues && msg.issues.length > 0) {
+            appendStreamContent(
+              "\n**Review issues found:**\n" +
+                msg.issues.map((issue) => `- ${issue}`).join("\n") +
+                "\n",
+            );
+          }
+          finalizeStream();
+          break;
       }
     };
 
@@ -96,6 +114,7 @@ export default function Workspace() {
         >
           &larr; Back
         </button>
+        <PhaseIndicator phase={phase} activeAgent={activeAgent} />
         <span className="text-sm font-medium">
           {currentProject?.name || "Loading..."}
         </span>

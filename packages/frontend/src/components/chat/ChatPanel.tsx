@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "../../store/chat-store";
 import ChatMessage from "./ChatMessage";
+import CommandAutocomplete from "./CommandAutocomplete";
 
 interface ChatPanelProps {
   onSend: (content: string) => void;
@@ -9,6 +10,7 @@ interface ChatPanelProps {
 
 export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
   const [input, setInput] = useState("");
+  const [showCommands, setShowCommands] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const { messages, streamingContent, isStreaming, error } = useChatStore();
 
@@ -16,12 +18,25 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingContent]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInput(value);
+    setShowCommands(value.startsWith("/"));
+  };
+
+  const handleCommandSelect = (command: string) => {
+    setInput(command + " ");
+    setShowCommands(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (showCommands) return;
     const trimmed = input.trim();
     if (!trimmed || isStreaming) return;
     onSend(trimmed);
     setInput("");
+    setShowCommands(false);
   };
 
   return (
@@ -69,12 +84,19 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
 
       <form
         onSubmit={handleSubmit}
-        className="border-t border-slate-700 p-3 flex gap-2"
+        className="relative border-t border-slate-700 p-3 flex gap-2"
       >
+        <CommandAutocomplete
+          input={input}
+          onSelect={handleCommandSelect}
+          visible={showCommands}
+          onDismiss={() => setShowCommands(false)}
+        />
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
+          onBlur={() => setTimeout(() => setShowCommands(false), 150)}
           placeholder="Describe your module..."
           disabled={!isConnected || isStreaming}
           className="flex-1 bg-slate-800 text-white text-sm rounded px-3 py-2 outline-none focus:ring-1 focus:ring-blue-500 placeholder-slate-500 disabled:opacity-50"

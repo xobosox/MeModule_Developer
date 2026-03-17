@@ -25,13 +25,30 @@ export interface Template {
 
 export interface WsMessage {
   seq: number;
-  type: string;
+  type:
+    | "connected"
+    | "chat"
+    | "file"
+    | "preview"
+    | "plan"
+    | "generation_complete"
+    | "error"
+    | "phase_changed"
+    | "review_started"
+    | "review_complete"
+    | "generation_cancelled"
+    | "resume_ack"
+    | string;
   content?: string;
   path?: string;
   streaming?: boolean;
   code?: string;
   message?: string;
   projectId?: string;
+  phase?: string;
+  agent?: string;
+  passed?: boolean;
+  issues?: string[];
 }
 
 export interface ChatMessage {
