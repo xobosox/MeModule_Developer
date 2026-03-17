@@ -4,6 +4,7 @@ import postgres from "postgres";
 import { migrate } from "./db/schema.js";
 import { seedTemplates } from "./db/seed-templates.js";
 import { seedExtendedTemplates } from "./db/seed-templates-extended.js";
+import { seedSkills } from "./db/seed-skills.js";
 import { createApp } from "./app.js";
 import { setupWebSocket } from "./routes/ws-chat.js";
 
@@ -26,6 +27,7 @@ async function main() {
 
   await seedTemplates(sql);
   await seedExtendedTemplates(sql);
+  await seedSkills(sql);
 
   const app = createApp(sql, JWT_SECRET);
 

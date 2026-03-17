@@ -18,6 +18,9 @@ function parseProject(row: Record<string, unknown>): Project {
     description: row.description as string | null,
     template_id: row.template_id as string | null,
     status: row.status as Project["status"],
+    phase: (row.phase as Project["phase"]) ?? "planning",
+    plan_content: (row.plan_content as string | null) ?? null,
+    design_content: (row.design_content as string | null) ?? null,
     file_tree:
       typeof row.file_tree_raw === "string"
         ? JSON.parse(row.file_tree_raw)
@@ -306,5 +309,89 @@ export async function getTemplate(
   `;
   return rows.length
     ? parseTemplate(rows[0] as unknown as Record<string, unknown>)
+    : null;
+}
+
+// ── Project Phase & Content ─────────────────────────────────────────────────
+
+export async function updateProjectPhase(
+  sql: postgres.Sql,
+  projectId: string,
+  phase: Project["phase"]
+): Promise<void> {
+  await sql`
+    UPDATE projects SET phase = ${phase}, updated_at = now()
+    WHERE id = ${projectId}
+  `;
+}
+
+export async function updatePlanContent(
+  sql: postgres.Sql,
+  projectId: string,
+  content: string
+): Promise<void> {
+  await sql`
+    UPDATE projects SET plan_content = ${content}, updated_at = now()
+    WHERE id = ${projectId}
+  `;
+}
+
+export async function updateDesignContent(
+  sql: postgres.Sql,
+  projectId: string,
+  content: string
+): Promise<void> {
+  await sql`
+    UPDATE projects SET design_content = ${content}, updated_at = now()
+    WHERE id = ${projectId}
+  `;
+}
+
+// ── Skills ──────────────────────────────────────────────────────────────────
+
+export interface SkillRow {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  triggers: string[];
+  agent_types: string[];
+  prompt: string;
+  code_snippets: Record<string, string>;
+  created_at: Date;
+}
+
+function parseSkillRow(row: Record<string, unknown>): SkillRow {
+  const codeSnippets =
+    typeof row.code_snippets === "string"
+      ? JSON.parse(row.code_snippets)
+      : (row.code_snippets ?? {});
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    display_name: row.display_name as string,
+    description: row.description as string,
+    triggers: row.triggers as string[],
+    agent_types: row.agent_types as string[],
+    prompt: row.prompt as string,
+    code_snippets: codeSnippets as Record<string, string>,
+    created_at: new Date(row.created_at as string),
+  };
+}
+
+export async function listSkills(
+  sql: postgres.Sql
+): Promise<SkillRow[]> {
+  const rows = await sql`SELECT * FROM skills ORDER BY name`;
+  return rows.map((r) => parseSkillRow(r as unknown as Record<string, unknown>));
+}
+
+export async function getSkillByName(
+  sql: postgres.Sql,
+  name: string
+): Promise<SkillRow | null> {
+  const rows = await sql`SELECT * FROM skills WHERE name = ${name}`;
+  return rows.length
+    ? parseSkillRow(rows[0] as unknown as Record<string, unknown>)
     : null;
 }

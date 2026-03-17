@@ -12,6 +12,9 @@ export interface Project {
   description: string | null;
   template_id: string | null;
   status: "draft" | "building" | "ready";
+  phase: "planning" | "designing" | "generating" | "iterating";
+  plan_content: string | null;
+  design_content: string | null;
   file_tree: Record<string, string>;
   created_at: Date;
   updated_at: Date;

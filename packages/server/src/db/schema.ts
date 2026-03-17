@@ -44,4 +44,22 @@ export async function migrate(sql: postgres.Sql) {
       updated_at TIMESTAMPTZ DEFAULT now()
     )
   `;
+
+  await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS phase TEXT NOT NULL DEFAULT 'planning'`;
+  await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS plan_content TEXT`;
+  await sql`ALTER TABLE projects ADD COLUMN IF NOT EXISTS design_content TEXT`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS skills (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL UNIQUE,
+      display_name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      triggers TEXT[] NOT NULL DEFAULT '{}',
+      agent_types TEXT[] NOT NULL DEFAULT '{}',
+      prompt TEXT NOT NULL,
+      code_snippets JSONB DEFAULT '{}',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
 }
