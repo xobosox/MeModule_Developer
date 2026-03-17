@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ChatMessage as ChatMessageType } from "../../lib/types";
 
 interface ChatMessageProps {
@@ -6,21 +7,50 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
+  const [showTimestamp, setShowTimestamp] = useState(false);
 
   return (
-    <div className={`px-4 py-3 ${isUser ? "bg-slate-800" : "bg-slate-850"}`}>
-      <div className="flex items-center gap-2 mb-1">
-        <span
-          className={`text-xs font-semibold ${isUser ? "text-blue-400" : "text-emerald-400"}`}
+    <div
+      className="px-5 py-3 chat-message-enter"
+      style={{
+        display: "flex",
+        justifyContent: isUser ? "flex-end" : "flex-start",
+      }}
+      onMouseEnter={() => setShowTimestamp(true)}
+      onMouseLeave={() => setShowTimestamp(false)}
+    >
+      <div
+        style={{
+          maxWidth: "85%",
+          position: "relative",
+        }}
+      >
+        <div
+          className="text-sm whitespace-pre-wrap"
+          style={{
+            background: isUser ? "var(--accent-subtle)" : "transparent",
+            border: isUser ? "1px solid rgba(6, 182, 212, 0.15)" : "none",
+            borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+            padding: isUser ? "10px 16px" : "4px 0",
+            color: "var(--text-primary)",
+            lineHeight: "1.6",
+          }}
         >
-          {isUser ? "You" : "Assistant"}
-        </span>
-        <span className="text-xs text-slate-500">
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </span>
-      </div>
-      <div className="text-sm text-slate-200 whitespace-pre-wrap">
-        {message.content}
+          {message.content}
+        </div>
+
+        {/* Timestamp on hover */}
+        <div
+          className="transition-opacity duration-200 mt-1"
+          style={{
+            opacity: showTimestamp ? 1 : 0,
+            fontSize: "11px",
+            color: "var(--text-muted)",
+            textAlign: isUser ? "right" : "left",
+          }}
+        >
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </div>
       </div>
     </div>
   );

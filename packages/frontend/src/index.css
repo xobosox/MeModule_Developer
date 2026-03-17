@@ -97,11 +97,73 @@
     color: var(--text-muted);
   }
 
+  /* Chat message fade-in */
+  .chat-message-enter {
+    animation: chatFadeIn 0.25s ease-out;
+  }
+
+  /* Streaming dots */
+  .streaming-dots::after {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-left: 6px;
+    vertical-align: middle;
+    animation: streamingDots 1.4s ease-in-out infinite;
+    box-shadow: 8px 0 0 -1px var(--accent), 16px 0 0 -1px var(--accent);
+  }
+
+  /* Skeleton pulse for loading states */
+  .skeleton-pulse {
+    animation: skeletonPulse 1.5s ease-in-out infinite;
+  }
+
   @keyframes gradient-shift {
     0% { background-position: 0% 50%; }
     25% { background-position: 100% 50%; }
     50% { background-position: 100% 100%; }
     75% { background-position: 0% 100%; }
     100% { background-position: 0% 50%; }
+  }
+
+  @keyframes chatFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes streamingDots {
+    0%, 80%, 100% {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes commandSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes skeletonPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.15; }
   }
 }

@@ -104,31 +104,102 @@ export default function Workspace() {
     wsRef.current?.sendMessage(content);
   };
 
+  const projectName = currentProject?.name || "Loading...";
+
   return (
-    <div className="h-screen flex flex-col bg-slate-950 text-white">
+    <div
+      className="h-screen flex flex-col"
+      style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
+    >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-slate-800">
+      <div
+        className="flex items-center gap-4 px-5 py-3"
+        style={{
+          borderBottom: "1px solid var(--border)",
+          background: "var(--bg-surface)",
+        }}
+      >
         <button
           onClick={() => navigate("/")}
-          className="text-sm text-slate-400 hover:text-white transition-colors"
+          className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+          style={{
+            color: "var(--text-secondary)",
+            background: "transparent",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--bg-surface-hover)";
+            e.currentTarget.style.color = "var(--text-primary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--text-secondary)";
+          }}
+          aria-label="Back to dashboard"
         >
-          &larr; Back
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5" />
+            <path d="M12 19l-7-7 7-7" />
+          </svg>
         </button>
-        <PhaseIndicator phase={phase} activeAgent={activeAgent} />
-        <span className="text-sm font-medium">
-          {currentProject?.name || "Loading..."}
+
+        <div
+          className="w-px h-5"
+          style={{ background: "var(--border)" }}
+        />
+
+        <span
+          className="text-sm font-semibold truncate max-w-[200px]"
+          style={{ color: "var(--text-primary)" }}
+          title={projectName}
+        >
+          {projectName}
         </span>
+
+        <PhaseIndicator phase={phase} activeAgent={activeAgent} />
+
+        {/* Connection status dot */}
+        <div className="flex items-center gap-1.5 ml-auto">
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{
+              background: isConnected ? "var(--success)" : "var(--error)",
+              boxShadow: isConnected
+                ? "0 0 6px rgba(16, 185, 129, 0.4)"
+                : "0 0 6px rgba(239, 68, 68, 0.4)",
+            }}
+            title={isConnected ? "Connected" : "Disconnected"}
+          />
+
+          <button
+            className="btn-secondary"
+            style={{
+              padding: "6px 14px",
+              fontSize: "12px",
+            }}
+            onClick={() => {
+              // Export functionality placeholder
+            }}
+          >
+            Export
+          </button>
+        </div>
       </div>
 
       {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel — Chat */}
-        <div className="w-[35%] border-r border-slate-800 flex flex-col">
+        {/* Left panel -- Chat */}
+        <div
+          className="flex flex-col"
+          style={{
+            width: "35%",
+            borderRight: "1px solid var(--border)",
+          }}
+        >
           <ChatPanel onSend={handleSend} isConnected={isConnected} />
         </div>
 
-        {/* Right panel — Tabs */}
-        <div className="w-[65%] flex flex-col">
+        {/* Right panel -- Tabs */}
+        <div className="flex flex-col" style={{ width: "65%" }}>
           <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
           <div className="flex-1 overflow-hidden">
             {activeTab === "plan" && <PlanTab content={planContent} />}

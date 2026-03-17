@@ -1,4 +1,9 @@
-const PHASES = ["planning", "designing", "generating", "iterating"] as const;
+const PHASES = [
+  { key: "planning", label: "Plan" },
+  { key: "designing", label: "Design" },
+  { key: "generating", label: "Build" },
+  { key: "iterating", label: "Iterate" },
+] as const;
 
 interface PhaseIndicatorProps {
   phase: string;
@@ -6,49 +11,56 @@ interface PhaseIndicatorProps {
 }
 
 export default function PhaseIndicator({ phase, activeAgent }: PhaseIndicatorProps) {
-  const currentIndex = PHASES.indexOf(phase as (typeof PHASES)[number]);
+  const currentIndex = PHASES.findIndex((p) => p.key === phase);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5 ml-2">
       {PHASES.map((p, i) => {
         const isCurrent = i === currentIndex;
         const isCompleted = i < currentIndex;
-        const isFuture = i > currentIndex;
+
+        let bg = "transparent";
+        let border = "1px solid var(--border)";
+        let color = "var(--text-muted)";
+        let shadow = "none";
+
+        if (isCurrent) {
+          bg = "var(--accent-subtle)";
+          border = "1px solid var(--accent)";
+          color = "var(--accent)";
+          shadow = "0 0 12px var(--accent-glow)";
+        } else if (isCompleted) {
+          bg = "var(--bg-surface-active)";
+          border = "1px solid var(--border-hover)";
+          color = "var(--text-secondary)";
+        }
 
         return (
-          <div key={p} className="flex items-center">
+          <div key={p.key} className="flex items-center gap-1.5">
             {i > 0 && (
               <div
-                className={`w-6 border-t ${
-                  isCompleted || isCurrent ? "border-slate-500" : "border-slate-700"
-                }`}
+                className="w-3 h-px"
+                style={{
+                  background: isCompleted || isCurrent ? "var(--border-hover)" : "var(--border)",
+                }}
               />
             )}
-            <div className="flex flex-col items-center gap-0.5">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isCurrent
-                    ? "bg-blue-400"
-                    : isCompleted
-                      ? "bg-slate-400"
-                      : "border border-slate-600 bg-transparent"
-                }`}
-              />
-              <span
-                className={`text-[10px] leading-none whitespace-nowrap ${
-                  isCurrent
-                    ? "text-blue-400"
-                    : isCompleted
-                      ? "text-slate-400"
-                      : "text-slate-600"
-                }`}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </span>
+            <div
+              className="px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-1.5"
+              style={{
+                background: bg,
+                border,
+                color,
+                boxShadow: shadow,
+              }}
+              title={isCurrent && activeAgent ? `Agent: ${activeAgent}` : undefined}
+            >
+              {p.label}
               {isCurrent && activeAgent && (
-                <span className="text-[9px] text-slate-500 whitespace-nowrap">
-                  {activeAgent}
-                </span>
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: "var(--accent)" }}
+                />
               )}
             </div>
           </div>
