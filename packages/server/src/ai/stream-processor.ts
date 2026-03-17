@@ -45,7 +45,7 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
   const { ws, systemPrompt, messages, abortSignal, onChatMessage, onToolCall } =
     params;
 
-  const model = process.env.CLAUDE_MODEL ?? "claude-sonnet-4-20250514";
+  const model = process.env.CLAUDE_MODEL ?? "claude-sonnet-4-6-20250627";
   const client = new Anthropic();
 
   const stream = client.messages.stream({

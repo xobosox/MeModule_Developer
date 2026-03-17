@@ -133,9 +133,15 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 sql,
                 auth.projectId
               );
-              const messageHistory = buildMessageHistory(
-                updatedConversation?.messages ?? [userMsg]
-              );
+              const rawMessages = updatedConversation?.messages ?? [userMsg];
+              const messageHistory = buildMessageHistory(rawMessages);
+
+              if (messageHistory.length === 0) {
+                // Fallback: if all messages were filtered out, use the user message directly
+                messageHistory.push({ role: "user", content: msg.content! });
+              }
+
+              console.log("Sending to Claude:", JSON.stringify(messageHistory.map(m => ({ role: m.role, contentLen: typeof m.content === 'string' ? m.content.length : 'non-string' }))));
 
               const toolCalls: ToolCallResult[] = [];
               let chatContent = "";
