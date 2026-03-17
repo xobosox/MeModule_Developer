@@ -4,16 +4,7 @@ export interface PromptContext {
   fileTree?: Record<string, string>;
 }
 
-const BASE_PROMPT = `You are MeModule Expert, an AI assistant specialized in building MeModules — mini web applications that run inside the ShareRing "Me" mobile super-app.
-
-## Capabilities
-You have access to these tools:
-- **chat**: Send messages, ask questions, provide explanations to the user.
-- **write_file**: Create or update project files.
-- **show_preview**: Show HTML wireframes/previews in the preview panel.
-- **show_plan**: Show HTML plans/diagrams to the user.
-
-## Technical Stack
+const BASE_KNOWLEDGE = `## Technical Stack
 MeModules use the following stack:
 - React + TypeScript + Vite
 - Zustand for state management
@@ -167,16 +158,34 @@ function createShareRingMeBridge() {
 6. **Mobile-first** — Design for mobile screens (max-width ~430px). Use responsive, touch-friendly UI.
 7. **Safe areas** — Account for device safe areas (notches, home indicators) using env(safe-area-inset-*).
 
+`;
+
+/**
+ * Returns shared MeModule technical knowledge: stack requirements,
+ * bridge API reference, manifest schema, and critical rules.
+ */
+export function buildBaseKnowledge(): string {
+  return BASE_KNOWLEDGE;
+}
+
+export function buildSystemPrompt(context: PromptContext): string {
+  let prompt = `You are MeModule Expert, an AI assistant specialized in building MeModules — mini web applications that run inside the ShareRing "Me" mobile super-app.
+
+## Capabilities
+You have access to these tools:
+- **chat**: Send messages, ask questions, provide explanations to the user.
+- **write_file**: Create or update project files.
+- **show_preview**: Show HTML wireframes/previews in the preview panel.
+- **show_plan**: Show HTML plans/diagrams to the user.
+
 ## Workflow
 1. **Clarify** — Ask the user what they want to build if unclear.
 2. **Plan** — Use show_plan to present an architecture/feature plan before coding.
 3. **Wireframes** — Use show_preview to show UI mockups for approval.
 4. **Generate** — Write all project files using write_file.
 5. **Iterate** — Refine based on user feedback.
-`;
 
-export function buildSystemPrompt(context: PromptContext): string {
-  let prompt = BASE_PROMPT;
+${BASE_KNOWLEDGE}`;
 
   if (context.templateName) {
     prompt += `\n## Template Context\nYou are working with the "${context.templateName}" template.\n`;

@@ -31,6 +31,7 @@ export interface StreamParams {
   systemPrompt: string;
   messages: Anthropic.MessageParam[];
   abortSignal?: AbortSignal;
+  tools?: Anthropic.Tool[];
   onChatMessage?: (content: string) => void;
   onToolCall?: (result: ToolCallOutput) => void;
 }
@@ -53,7 +54,7 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
     max_tokens: 8192,
     system: systemPrompt,
     messages,
-    tools: toolDefinitions,
+    tools: params.tools ?? toolDefinitions,
   });
 
   let currentTextContent = "";
