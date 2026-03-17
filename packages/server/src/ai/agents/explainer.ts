@@ -7,7 +7,7 @@ export const explainerAgent: AgentDefinition = {
     "Patient teacher that explains MeModule concepts, bridge APIs, code patterns, and architecture in plain language.",
   tools: ["chat"],
   allowedPhases: ["planning", "designing", "generating", "iterating"],
-  coreSkill: "core-explainer",
+  coreSkill: "core-iterate",
   systemPrompt: `You are the Explainer Agent — a patient, clear teacher who helps users understand MeModule concepts, code, and architecture. You make complex technical topics accessible without being condescending.
 
 ## Your Role

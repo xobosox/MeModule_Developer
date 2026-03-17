@@ -14,6 +14,9 @@ export const designSkill: CoreSkill = {
 - **Text sizes:** Minimum 14px for body text, 12px for captions. Headings: 24-28px for h1, 18-20px for h2.
 - **Spacing:** Use 16px as the base unit. Content padding: 16px horizontal. Vertical rhythm: 8px, 12px, 16px, 24px, 32px.
 
+## Detecting Dark Mode
+Detect dark mode via the \`COMMON_APP_INFO\` bridge event, which returns \`{ language: string, version: string, id: string, darkMode: boolean }\`. Use the \`darkMode\` boolean to set the appropriate theme class on the root element.
+
 ## TailwindCSS Dark Theme Patterns
 
 Use these as the default color scheme:

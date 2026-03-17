@@ -7,7 +7,7 @@ export const reviewSkill: CoreSkill = {
   buildPrompt(context: SkillContext): string {
     const fileList = Object.keys(context.fileTree).join("\n  - ");
 
-    return `## MeModule Constraint Checklist (14 Rules)
+    return `## MeModule Constraint Checklist (16 Rules)
 
 Review EVERY file in the project against these rules. Check each rule systematically.
 
@@ -25,10 +25,10 @@ Review EVERY file in the project against these rules. Check each rule systematic
 - manifest.json MUST contain \`isMaintenance\` (boolean)
 - Check: manifest.json
 
-### Rule 3: Bridge Event Names UPPERCASE
+### Rule 3: Bridge Event Names UPPERCASE and Correct
 - All event name strings passed to bridge functions must be UPPERCASE
-- Examples: \`GET_WALLET_BALANCE\`, \`NAVIGATE_TO\`, \`GET_VAULT_DOCUMENT\`
-- NOT: \`getWalletBalance\`, \`navigate_to\`, \`Get_Wallet_Balance\`
+- Examples: \`WALLET_BALANCE\`, \`NAVIGATE_TO\`, \`VAULT_DOCUMENTS\`, \`COMMON_APP_INFO\`
+- NOT: \`getWalletBalance\`, \`GET_WALLET_BALANCE\`, \`GET_VAULT_DOCUMENT\`, \`navigate_to\`
 - Check: all files that call bridge/sendBridgeEvent functions
 
 ### Rule 4: All Paths Relative
@@ -95,9 +95,21 @@ Review EVERY file in the project against these rules. Check each rule systematic
 - Must include timeout handling (Rule 10)
 - Check: src/services/me-bridge.ts
 
+### Rule 15: Bridge Uses ReactNativeWebView.postMessage
+- Bridge MUST send messages via \`window.ReactNativeWebView?.postMessage(JSON.stringify({ type, payload }))\`
+- MUST NOT use \`window.parent.postMessage\`, \`window.MeBridge\`, \`window.webkit.messageHandlers\`, or \`window.MeModuleBridge\`
+- Response listener uses \`window.addEventListener("message", handler, true)\` and parses \`event.data\` as JSON
+- Check: src/services/me-bridge.ts, any bridge helper files
+
+### Rule 16: PIN-Gated Operations Have Extended Timeout
+- These operations require PIN confirmation and MUST use 60-second timeout:
+  CRYPTO_DECRYPT, CRYPTO_SIGN, WALLET_SIGN_TRANSACTION, WALLET_SIGN_AND_BROADCAST_TRANSACTION, VAULT_EXEC_QUERY_SILENT
+- Regular bridge operations use standard timeout (10 seconds)
+- Check: me-bridge.ts, bridge helper functions
+
 ## Output Format
 
-After reviewing all files against all 14 rules, output your result as:
+After reviewing all files against all 16 rules, output your result as:
 
 \`\`\`json
 {"passed": true, "issues": []}

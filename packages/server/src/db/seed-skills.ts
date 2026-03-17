@@ -16,73 +16,76 @@ const skills: SkillSeed[] = [
     display_name: "Add Wallet Integration",
     description:
       "Integrate ShareRing wallet functionality including balance checks, payments, and transaction signing.",
-    triggers: ["wallet", "payment", "balance", "SHR", "send", "transaction", "sign"],
+    triggers: ["wallet", "payment", "balance", "SHR", "send", "transaction", "sign", "account", "address", "broadcast", "token"],
     agent_types: ["generator", "iterator"],
     prompt: `When adding wallet functionality to a MeModule, use the ShareRing bridge events for all blockchain interactions. Never attempt direct RPC calls — all wallet operations go through the host app bridge.
 
 Key bridge events:
-- WALLET_CURRENT_ACCOUNT: Returns the user's wallet address. Call this on mount to display the connected account. The response contains { address: string }.
-- WALLET_BALANCE: Retrieves the current SHR token balance. Returns { balance: string } in the smallest denomination. Format for display by dividing by 10^8.
-- WALLET_SIGN_AND_BROADCAST_TRANSACTION: Send SHR tokens or interact with smart contracts. Requires { to: string, amount: string, memo?: string }. Returns { txHash: string } on success.
+- WALLET_CURRENT_ACCOUNT: Returns the user's currently selected wallet account. Response payload: { address: string, pubKey: string }.
+- WALLET_MAIN_ACCOUNT: Returns the user's main wallet account. Response payload: { address: string, pubKey: string }.
+- WALLET_BALANCE: Retrieves the current token balances. Response payload: Array<{ amount: string, denom: string }>. Each entry is a denomination (e.g., "nshr" for nano-SHR). Format for display by dividing by 10^9 for nshr.
+- WALLET_ACCOUNTS: Returns all wallet accounts. Response payload: Array<{ address: string, pubKey: string }>.
+- WALLET_SIGN_AND_BROADCAST_TRANSACTION: Sign and broadcast a ShareLedger transaction. Requires PIN confirmation (use 60s timeout). Request payload: { messages: string (hex-encoded TX body), memo?: string, fee: { amount?: Array<{amount: string, denom: string}>, gas?: number, gasPrice?: string } }. Response payload: { height: number, transactionHash: string, gasUsed: number, gasWanted: number, code: string }.
+- WALLET_SIGN_TRANSACTION: Sign a transaction without broadcasting. Same request shape as above. Response payload: string (signature).
+
+Communication: Use window.ReactNativeWebView?.postMessage(JSON.stringify({ type, payload })) to send requests.
 
 Implementation pattern:
-1. Create a wallet store slice using Zustand to hold address, balance, and loading state.
-2. On component mount, dispatch WALLET_CURRENT_ACCOUNT to populate the address.
-3. Provide a refreshBalance() action that dispatches WALLET_BALANCE and updates the store.
-4. For payments, build a confirmation UI showing recipient, amount, and memo before dispatching WALLET_SIGN_AND_BROADCAST_TRANSACTION.
+1. Create a wallet store slice using Zustand to hold address, balances, and loading state.
+2. On component mount, dispatch WALLET_CURRENT_ACCOUNT to populate the address and pubKey.
+3. Provide a refreshBalance() action that dispatches WALLET_BALANCE and updates the store with the balances array.
+4. For transactions, build a confirmation UI showing details before dispatching WALLET_SIGN_AND_BROADCAST_TRANSACTION. The user will see a PIN prompt.
 5. Always handle errors gracefully — wrap bridge calls in try/catch and show user-friendly error toasts.
 6. Display transaction hashes as truncated strings with a copy button.
 
 Use TailwindCSS for styling. Keep amounts formatted with toLocaleString() for readability.`,
     code_snippets: {
       "wallet-store": `import { create } from 'zustand';
-import { dispatchBridgeEvent } from './bridge';
+import { sendBridgeEvent } from '../services/me-bridge';
 
 interface WalletState {
   address: string | null;
-  balance: string;
+  pubKey: string | null;
+  balances: Array<{ amount: string; denom: string }>;
   loading: boolean;
   fetchAccount: () => Promise<void>;
   fetchBalance: () => Promise<void>;
-  sendPayment: (to: string, amount: string, memo?: string) => Promise<string>;
+  signAndBroadcast: (messages: string, fee: { amount?: Array<{amount: string; denom: string}>; gas?: number; gasPrice?: string }, memo?: string) => Promise<{ transactionHash: string }>;
 }
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   address: null,
-  balance: '0',
+  pubKey: null,
+  balances: [],
   loading: false,
   fetchAccount: async () => {
     set({ loading: true });
     try {
-      const res = await dispatchBridgeEvent('WALLET_CURRENT_ACCOUNT', {});
-      set({ address: res.address });
+      const res = await sendBridgeEvent('WALLET_CURRENT_ACCOUNT') as { address: string; pubKey: string };
+      set({ address: res.address, pubKey: res.pubKey });
     } finally {
       set({ loading: false });
     }
   },
   fetchBalance: async () => {
-    const res = await dispatchBridgeEvent('WALLET_BALANCE', {});
-    set({ balance: res.balance });
+    const balances = await sendBridgeEvent('WALLET_BALANCE') as Array<{ amount: string; denom: string }>;
+    set({ balances });
   },
-  sendPayment: async (to, amount, memo) => {
+  signAndBroadcast: async (messages, fee, memo) => {
     set({ loading: true });
     try {
-      const res = await dispatchBridgeEvent('WALLET_SIGN_AND_BROADCAST_TRANSACTION', { to, amount, memo });
+      const res = await sendBridgeEvent('WALLET_SIGN_AND_BROADCAST_TRANSACTION', { messages, memo, fee }) as { height: number; transactionHash: string; gasUsed: number; gasWanted: number; code: string };
       await get().fetchBalance();
-      return res.txHash;
+      return { transactionHash: res.transactionHash };
     } finally {
       set({ loading: false });
     }
   },
 }));`,
-      "bridge-helper": `export async function dispatchBridgeEvent(event: string, payload: Record<string, unknown>): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const callbackId = crypto.randomUUID();
-    (window as any).__BRIDGE_CALLBACKS__ = (window as any).__BRIDGE_CALLBACKS__ || {};
-    (window as any).__BRIDGE_CALLBACKS__[callbackId] = { resolve, reject };
-    window.parent.postMessage({ type: event, callbackId, payload }, '*');
-  });
-}`,
+      "bridge-helper": `// Bridge communication uses ReactNativeWebView.postMessage
+// See me-bridge.ts for the full bridge service implementation.
+// Send: window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'EVENT_NAME', payload }))
+// Receive: window.addEventListener('message', handler, true) — response is JSON with { type, payload, error? }`,
     },
   },
   {
@@ -144,39 +147,47 @@ export default function NewScreen() {
     display_name: "Add Vault / Identity",
     description:
       "Access user identity documents and verified credentials from the ShareRing Vault.",
-    triggers: ["vault", "document", "identity", "passport", "verify"],
+    triggers: ["vault", "document", "identity", "passport", "verify", "credential", "kyc", "email", "avatar", "query"],
     agent_types: ["generator", "iterator"],
     prompt: `The ShareRing Vault stores user identity documents and verified credentials. Access vault data through bridge events — never store sensitive identity data locally.
 
 Key bridge events:
-- VAULT_DOCUMENTS: Retrieve a list of the user's stored documents. Returns { documents: Array<{ type: string, status: string, id: string }> }. Document types include "passport", "drivers_license", "national_id", "proof_of_address".
-- VAULT_EMAIL: Get the user's verified email address. Returns { email: string, verified: boolean }.
-- VAULT_EXEC_QUERY: Execute a structured query against vault data. Pass { query: string, fields: string[] } to request specific verified fields. Returns the requested data if the user grants permission.
+- VAULT_DOCUMENTS: Retrieve a list of the user's stored documents. Response payload is a flat array: Array<{ id: string, type: string, country: string }>. No wrapper object.
+- VAULT_EMAIL: Get the user's verified email address. Response payload is a plain string (just the email address, not an object).
+- VAULT_AVATAR: Get the user's avatar. Response payload is a base64 encoded image string.
+- VAULT_ADD_DOCUMENT: Add a document to the vault. Payload: { image: string, photo: string, metadata: { type, expiryDate, issueDate, number, country, countryCode, fullName, dob, address, nationality, placeOfBirth, issueBy } }. Returns null.
+- VAULT_ADD_CUSTOM_VALUE: Add custom key-value data to the vault. Payload: { [key: string]: any }. Returns null.
+- VAULT_EXEC_QUERY: Execute a vault query / data sharing flow. Payload: { queryId: string, clientId: string, ownerAddress: string, sessionId?: string, customValue?: Array<{ name: string, value: string }> }. Returns Array<{ name: string, label: string, value: string }>.
+- VAULT_EXEC_QUERY_SILENT: Same as VAULT_EXEC_QUERY but requires PIN confirmation (use 60s timeout).
+
+Communication: Use window.ReactNativeWebView?.postMessage(JSON.stringify({ type, payload })) to send requests.
 
 Implementation guidelines:
 1. Always request the minimum data needed — only query fields your MeModule actually uses.
-2. The user will see a consent prompt for each vault access. Design your UX to explain why data is needed before requesting it.
+2. The user will see a consent prompt for vault queries. Design your UX to explain why data is needed before requesting it.
 3. Cache vault responses in component state for the session, but never persist to localStorage.
 4. Handle the case where users deny vault access gracefully — show a message explaining what features are unavailable.
-5. Display document verification status with appropriate visual indicators (green check for verified, yellow for pending).
+5. Display document type and country info. Documents have id, type, and country fields.
 6. For identity verification flows, use a multi-step approach: explain -> request -> confirm -> proceed.
 
 Use skeleton loading states while vault data is being fetched. Format all personal data with appropriate masking (e.g., show only last 4 of document numbers).`,
     code_snippets: {
-      "vault-fetch": `import { dispatchBridgeEvent } from './bridge';
+      "vault-fetch": `import { sendBridgeEvent } from '../services/me-bridge';
 
 export async function fetchVaultDocuments() {
-  const { documents } = await dispatchBridgeEvent('VAULT_DOCUMENTS', {});
-  return documents as Array<{ type: string; status: string; id: string }>;
+  // Response payload is a flat array, not wrapped in an object
+  const documents = await sendBridgeEvent('VAULT_DOCUMENTS') as Array<{ id: string; type: string; country: string }>;
+  return documents;
 }
 
-export async function fetchVerifiedEmail() {
-  const { email, verified } = await dispatchBridgeEvent('VAULT_EMAIL', {});
-  return { email: email as string, verified: verified as boolean };
+export async function fetchVaultEmail() {
+  // Response payload is a plain string (the email address)
+  const email = await sendBridgeEvent('VAULT_EMAIL') as string;
+  return email;
 }
 
-export async function queryVault(query: string, fields: string[]) {
-  return dispatchBridgeEvent('VAULT_EXEC_QUERY', { query, fields });
+export async function execVaultQuery(queryId: string, clientId: string, ownerAddress: string, opts?: { sessionId?: string; customValue?: Array<{ name: string; value: string }> }) {
+  return sendBridgeEvent('VAULT_EXEC_QUERY', { queryId, clientId, ownerAddress, ...opts }) as Promise<Array<{ name: string; label: string; value: string }>>;
 }`,
     },
   },
@@ -185,13 +196,15 @@ export async function queryVault(query: string, fields: string[]) {
     display_name: "Add Local Storage",
     description:
       "Persist data locally using the ShareRing async storage bridge for key-value storage.",
-    triggers: ["storage", "save", "persist", "remember", "cache", "local"],
+    triggers: ["storage", "save", "persist", "remember", "cache", "local", "preferences", "settings", "async storage"],
     agent_types: ["generator", "iterator"],
-    prompt: `MeModules run in a sandboxed WebView and do not have direct access to localStorage. Instead, use the ShareRing bridge async storage events for persistent key-value storage.
+    prompt: `MeModules run in a sandboxed WebView and do not have direct access to localStorage. Instead, use the ShareRing bridge async storage events for persistent key-value storage scoped to your module domain.
 
 Key bridge events:
-- COMMON_READ_ASYNC_STORAGE: Read a value by key. Dispatch with { key: string }. Returns { value: string | null }. Values are always strings — parse JSON as needed.
-- COMMON_WRITE_ASYNC_STORAGE: Write a value by key. Dispatch with { key: string, value: string }. Returns { success: boolean }. Always JSON.stringify objects before storing.
+- COMMON_READ_ASYNC_STORAGE: Read values by key. Payload is a bare string (single key) or string[] (multiple keys) — NOT an object. Response payload: Record<string, any> — a key-value object where missing/unavailable keys are omitted.
+- COMMON_WRITE_ASYNC_STORAGE: Write values. Payload is { [key: string]: any } — a key-value object of data to write. Response payload: null.
+
+Communication: Use window.ReactNativeWebView?.postMessage(JSON.stringify({ type, payload })) to send requests.
 
 Implementation pattern:
 1. Create a storage utility module with typed get/set functions.
@@ -207,25 +220,25 @@ Best practices:
 - Use a version key to handle schema migrations when your storage format changes.
 - Consider using a Zustand persist middleware pattern for automatic state hydration.`,
     code_snippets: {
-      "storage-util": `import { dispatchBridgeEvent } from './bridge';
+      "storage-util": `import { sendBridgeEvent } from '../services/me-bridge';
 
 const PREFIX = 'memodule';
 
 export async function storageGet<T>(key: string, fallback: T): Promise<T> {
   try {
-    const { value } = await dispatchBridgeEvent('COMMON_READ_ASYNC_STORAGE', {
-      key: \`\${PREFIX}:\${key}\`,
-    });
-    return value ? JSON.parse(value) : fallback;
+    // Payload is just the key string (or array of keys), not an object
+    const result = await sendBridgeEvent('COMMON_READ_ASYNC_STORAGE', \`\${PREFIX}:\${key}\`) as Record<string, any>;
+    const value = result[\`\${PREFIX}:\${key}\`];
+    return value !== undefined ? (typeof value === 'string' ? JSON.parse(value) : value) : fallback;
   } catch {
     return fallback;
   }
 }
 
 export async function storageSet<T>(key: string, data: T): Promise<void> {
-  await dispatchBridgeEvent('COMMON_WRITE_ASYNC_STORAGE', {
-    key: \`\${PREFIX}:\${key}\`,
-    value: JSON.stringify(data),
+  // Payload is a key-value object, response is null
+  await sendBridgeEvent('COMMON_WRITE_ASYNC_STORAGE', {
+    [\`\${PREFIX}:\${key}\`]: JSON.stringify(data),
   });
 }`,
       "zustand-persist": `import { storageGet, storageSet } from './storage';
@@ -254,19 +267,23 @@ export function withPersist<T extends object>(
     display_name: "Add Navigation Actions",
     description:
       "Navigate within the host app, open external links, or handle deep links through bridge events.",
-    triggers: ["link", "navigate", "back", "external", "deep"],
+    triggers: ["link", "navigate", "back", "external", "deep", "open", "redirect", "route", "settings"],
     agent_types: ["generator", "iterator"],
     prompt: `MeModules can trigger navigation actions in the host ShareRing app using bridge events. This includes navigating to other app sections, opening external URLs, and handling back navigation.
 
 Key bridge events:
-- NAVIGATE_TO: Navigate to a specific section in the host app. Dispatch with { route: string, params?: Record<string, string> }. Common routes: "home", "vault", "settings", "scan".
-- NAVIGATE_BACK: Return to the previous screen in the host app's navigation stack. Dispatch with {} (no payload needed). Use this for the MeModule's top-level back button.
-- NAVIGATE_OPEN_LINK: Open an external URL in the device's default browser. Dispatch with { url: string }. Always validate URLs before opening. Returns { opened: boolean }.
+- NAVIGATE_TO: Navigate within the ShareRing Me app. Payload: { to: string, params?: Record<string, any>, mode?: "replace" | "push" }. The "to" field is the target (an in-app screen name or another MeModule's domain). "mode" controls whether the route is replaced or pushed onto the stack.
+- NAVIGATE_BACK: Return to the previous screen. Payload: { steps?: number } (defaults to 1). Response payload: null.
+- NAVIGATE_OPEN_LINK: Open a URL or deeplink via the OS (uses Linking.openURL). Payload is just the URL string — NOT an object. This is fire-and-forget (no response).
+- NAVIGATE_IS_FOCUSED: Check if the module is currently focused. No payload. Response payload: boolean.
+- NAVIGATE_OPEN_DEVICE_SETTINGS: Open device settings. Payload is a string: "general" | "location" | "bluetooth" | "network" | "wifi" | "cellular" | "app" | "apps".
+
+Communication: Use window.ReactNativeWebView?.postMessage(JSON.stringify({ type, payload })) to send requests.
 
 Implementation guidelines:
-1. Use NAVIGATE_BACK for the main screen's back/close button to return to the MeModule list.
+1. Use NAVIGATE_BACK for the main screen's back/close button to return to the previous screen.
 2. Internal MeModule navigation (between your own screens) should use react-router — only use NAVIGATE_TO for host app navigation.
-3. When opening external links, show the URL to the user and confirm before dispatching NAVIGATE_OPEN_LINK.
+3. NAVIGATE_OPEN_LINK is fire-and-forget — it opens the URL via the OS and does not return a response.
 4. For deep link handling, register patterns in your MeModule manifest and handle incoming params in your root component.
 5. Always provide visual feedback when triggering navigation — disable buttons and show loading states to prevent double-taps.
 
@@ -276,19 +293,21 @@ Navigation UX best practices:
 - Animate page transitions using react-router or framer-motion.
 - Handle hardware back button on Android by wiring up NAVIGATE_BACK.`,
     code_snippets: {
-      "nav-helpers": `import { dispatchBridgeEvent } from './bridge';
+      "nav-helpers": `import { sendBridgeEvent } from '../services/me-bridge';
 
-export async function navigateToHostRoute(route: string, params?: Record<string, string>) {
-  await dispatchBridgeEvent('NAVIGATE_TO', { route, ...params });
+export async function navigateToHost(to: string, params?: Record<string, any>, mode?: 'replace' | 'push') {
+  await sendBridgeEvent('NAVIGATE_TO', { to, params, mode });
 }
 
-export async function navigateBack() {
-  await dispatchBridgeEvent('NAVIGATE_BACK', {});
+export async function navigateBack(steps?: number) {
+  await sendBridgeEvent('NAVIGATE_BACK', { steps });
 }
 
-export async function openExternalLink(url: string): Promise<boolean> {
-  const { opened } = await dispatchBridgeEvent('NAVIGATE_OPEN_LINK', { url });
-  return opened as boolean;
+export function openExternalLink(url: string) {
+  // Fire-and-forget — no response expected
+  (window as any).ReactNativeWebView?.postMessage(
+    JSON.stringify({ type: 'NAVIGATE_OPEN_LINK', payload: url })
+  );
 }`,
     },
   },

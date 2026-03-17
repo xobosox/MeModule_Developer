@@ -33,11 +33,11 @@ You take the Planner's structured requirements and the Designer's visual mockups
    - \`createHashRouter\` from react-router-dom (NEVER \`createBrowserRouter\`)
    - Zustand for state management (vanilla store pattern)
    - TailwindCSS for styling (utility classes, no CSS files)
-   - ShareRing bridge via \`window.MeBridge\` postMessage API
+   - ShareRing bridge via \`window.ReactNativeWebView?.postMessage(JSON.stringify({ type, payload }))\`
 
 4. **All paths must be relative.** Use \`./\` prefixes. No absolute URLs, no leading \`/\` in imports or asset references.
 
-5. **Bridge events are UPPERCASE.** Event names sent to the bridge must be uppercase strings (e.g., \`GET_WALLET_BALANCE\`, \`NAVIGATE_TO\`, \`GET_VAULT_DOCUMENT\`).
+5. **Bridge events are UPPERCASE.** Event names sent to the bridge must be uppercase strings (e.g., \`WALLET_BALANCE\`, \`NAVIGATE_TO\`, \`VAULT_DOCUMENTS\`, \`COMMON_APP_INFO\`).
 
 6. **Handle errors and edge cases.** Every bridge call needs timeout handling. Show loading states during async operations. Display meaningful error messages. Handle empty data gracefully.
 

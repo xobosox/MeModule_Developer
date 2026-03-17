@@ -106,52 +106,69 @@ export const useAppStore = create<AppState>((set) => ({
 
 ### Bridge Service Pattern
 \`\`\`tsx
-type BridgeCallback = (response: unknown) => void;
+type MeModuleResponse = { type: string; payload: any; error?: unknown };
 
-const pendingRequests = new Map<string, BridgeCallback>();
-let requestQueue: Array<() => void> = [];
-let isProcessing = false;
+let inFlight: {
+  expectedType: string;
+  resolve: (value: any) => void;
+  reject: (err: Error) => void;
+  timeoutId: number;
+} | null = null;
 
-function processQueue() {
-  if (isProcessing || requestQueue.length === 0) return;
-  isProcessing = true;
-  const next = requestQueue.shift()!;
-  next();
+const queue: Array<{
+  expectedType: string;
+  payload: any;
+  timeoutMs: number;
+  resolve: (value: any) => void;
+  reject: (err: Error) => void;
+}> = [];
+
+function flush() {
+  if (inFlight || queue.length === 0) return;
+  const next = queue.shift()!;
+  inFlight = {
+    expectedType: next.expectedType,
+    resolve: next.resolve,
+    reject: next.reject,
+    timeoutId: window.setTimeout(() => {
+      inFlight = null;
+      next.reject(new Error(\`Timeout waiting for \${next.expectedType}\`));
+      flush();
+    }, next.timeoutMs),
+  };
+
+  (window as any).ReactNativeWebView?.postMessage(
+    JSON.stringify({ type: next.expectedType, payload: next.payload })
+  );
 }
 
-export function sendBridgeEvent(event: string, data?: unknown): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    const execute = () => {
-      const id = crypto.randomUUID();
-      const timeout = setTimeout(() => {
-        pendingRequests.delete(id);
-        isProcessing = false;
-        processQueue();
-        reject(new Error(\`Bridge timeout: \${event}\`));
-      }, event.includes("PIN") ? 60000 : 10000);
+export function sendBridgeEvent(type: string, payload?: any, opts?: { timeoutMs?: number }): Promise<any> {
+  const expectedType = String(type).toUpperCase();
+  // PIN-gated operations need longer timeout
+  const PIN_GATED = ['CRYPTO_DECRYPT', 'CRYPTO_SIGN', 'WALLET_SIGN_TRANSACTION', 'WALLET_SIGN_AND_BROADCAST_TRANSACTION', 'VAULT_EXEC_QUERY_SILENT'];
+  const timeoutMs = opts?.timeoutMs ?? (PIN_GATED.includes(expectedType) ? 60000 : 10000);
 
-      pendingRequests.set(id, (response) => {
-        clearTimeout(timeout);
-        pendingRequests.delete(id);
-        isProcessing = false;
-        processQueue();
-        resolve(response);
-      });
-
-      window.parent.postMessage({ id, event, data }, "*");
-    };
-
-    requestQueue.push(execute);
-    processQueue();
+  return new Promise<any>((resolve, reject) => {
+    queue.push({ expectedType, payload, timeoutMs, resolve, reject });
+    flush();
   });
 }
 
-window.addEventListener("message", (e) => {
-  const { id, data } = e.data || {};
-  if (id && pendingRequests.has(id)) {
-    pendingRequests.get(id)!(data);
-  }
-});
+window.addEventListener("message", (event) => {
+  if (event.type !== "message") return;
+  let msg: MeModuleResponse;
+  try { msg = JSON.parse((event as any).data); } catch { return; }
+  if (!msg || !msg.type || !inFlight) return;
+  if (String(msg.type).toUpperCase() !== inFlight.expectedType) return;
+
+  window.clearTimeout(inFlight.timeoutId);
+  const { resolve, reject } = inFlight;
+  inFlight = null;
+
+  if (msg.error) reject(new Error(String(msg.error)));
+  else resolve(msg.payload);
+  flush();
+}, true);
 \`\`\``;
 
     if (context.planContent) {
