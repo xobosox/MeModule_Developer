@@ -10,7 +10,7 @@ interface ProjectCardProps {
 const statusColors: Record<string, { bg: string; text: string }> = {
   planning: { bg: "rgba(245, 158, 11, 0.1)", text: "#f59e0b" },
   designing: { bg: "rgba(168, 85, 247, 0.1)", text: "#a855f7" },
-  generating: { bg: "rgba(6, 182, 212, 0.1)", text: "#06b6d4" },
+  generating: { bg: "rgba(1, 14, 208, 0.1)", text: "#010ED0" },
   iterating: { bg: "rgba(16, 185, 129, 0.1)", text: "#10b981" },
 };
 
@@ -80,7 +80,7 @@ export default function ProjectCard({ project, onDelete, fileCount }: ProjectCar
       {/* Hover "Open" overlay hint */}
       <div
         className="absolute inset-0 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-        style={{ background: "rgba(10, 10, 15, 0.5)" }}
+        style={{ background: "rgba(13, 13, 26, 0.5)" }}
       >
         <span
           className="text-xs font-semibold px-3 py-1.5 rounded-md"

@@ -10,7 +10,10 @@ export default function FileTree({ fileTree }: FileTreeProps) {
   const paths = Object.keys(fileTree).sort();
 
   return (
-    <div className="w-48 border-r border-slate-800 overflow-y-auto text-sm">
+    <div
+      className="w-48 overflow-y-auto text-sm"
+      style={{ borderRight: "1px solid var(--border)" }}
+    >
       {paths.map((path) => {
         const filename = path.split("/").pop() || path;
         const isSelected = selectedFile === path;
@@ -20,11 +23,23 @@ export default function FileTree({ fileTree }: FileTreeProps) {
             key={path}
             title={path}
             onClick={() => selectFile(path)}
-            className={`block w-full text-left px-3 py-1.5 truncate transition-colors ${
-              isSelected
-                ? "bg-slate-800 text-blue-400"
-                : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
-            }`}
+            className="block w-full text-left px-3 py-1.5 truncate transition-colors"
+            style={{
+              background: isSelected ? "var(--bg-surface-active)" : "transparent",
+              color: isSelected ? "var(--accent-secondary)" : "var(--text-secondary)",
+            }}
+            onMouseEnter={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.background = "var(--bg-surface-hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isSelected) {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--text-secondary)";
+              }
+            }}
           >
             {filename}
           </button>

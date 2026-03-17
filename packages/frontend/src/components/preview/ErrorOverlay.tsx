@@ -8,7 +8,7 @@ export default function ErrorOverlay({ error, onFixWithAi }: ErrorOverlayProps) 
     <div
       className="absolute inset-0 z-50 flex flex-col p-6 overflow-auto"
       style={{
-        background: "rgba(10, 10, 15, 0.95)",
+        background: "rgba(13, 13, 26, 0.95)",
         backdropFilter: "blur(8px)",
       }}
     >

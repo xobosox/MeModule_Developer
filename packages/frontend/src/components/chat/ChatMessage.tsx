@@ -29,7 +29,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           className="text-sm whitespace-pre-wrap"
           style={{
             background: isUser ? "var(--accent-subtle)" : "transparent",
-            border: isUser ? "1px solid rgba(6, 182, 212, 0.15)" : "none",
+            border: isUser ? "1px solid rgba(1, 14, 208, 0.2)" : "none",
             borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
             padding: isUser ? "10px 16px" : "4px 0",
             color: "var(--text-primary)",

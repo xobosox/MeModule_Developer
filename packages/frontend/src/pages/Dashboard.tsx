@@ -63,7 +63,7 @@ export default function Dashboard() {
       <header
         className="sticky top-0 z-50"
         style={{
-          background: "rgba(10, 10, 15, 0.8)",
+          background: "rgba(13, 13, 26, 0.8)",
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid var(--border)",
         }}

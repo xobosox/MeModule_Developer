@@ -42,9 +42,9 @@ export default function Login() {
         className="absolute inset-0 opacity-30"
         style={{
           background:
-            "radial-gradient(ellipse at 20% 50%, rgba(6, 182, 212, 0.15) 0%, transparent 50%), " +
-            "radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%), " +
-            "radial-gradient(ellipse at 50% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 20% 50%, rgba(1, 14, 208, 0.2) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 80% 20%, rgba(26, 26, 64, 0.4) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 50% 80%, rgba(1, 14, 208, 0.12) 0%, transparent 50%)",
           animation: "gradient-shift 15s ease infinite",
           backgroundSize: "200% 200%",
         }}
@@ -142,11 +142,11 @@ export default function Login() {
 
         {/* Footer */}
         <p
-          className="text-xs text-center mt-8"
-          style={{ color: "var(--text-muted)" }}
+          className="text-sm text-center mt-8 font-medium"
+          style={{ color: "var(--text-secondary)" }}
         >
           Powered by{" "}
-          <span style={{ color: "var(--text-secondary)" }}>ShareRing</span>
+          <span style={{ color: "var(--accent-secondary)", fontWeight: 700 }}>ShareRing</span>
         </p>
       </div>
     </div>

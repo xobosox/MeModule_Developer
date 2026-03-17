@@ -26,7 +26,7 @@ export default function TabBar({ activeTab, onTabChange }: TabBarProps) {
             style={{
               background: isActive ? "var(--accent-subtle)" : "transparent",
               color: isActive ? "var(--accent)" : "var(--text-secondary)",
-              border: isActive ? "1px solid rgba(6, 182, 212, 0.15)" : "1px solid transparent",
+              border: isActive ? "1px solid rgba(1, 14, 208, 0.2)" : "1px solid transparent",
             }}
             onClick={() => onTabChange(tab.key)}
             onMouseEnter={(e) => {

@@ -133,7 +133,7 @@ export default function CommandAutocomplete({
                   <span className="text-base w-6 text-center flex-shrink-0">{cmd.icon}</span>
                   <span
                     className="font-mono text-xs"
-                    style={{ color: "var(--accent)" }}
+                    style={{ color: "var(--accent-secondary)" }}
                   >
                     {cmd.command}
                   </span>
