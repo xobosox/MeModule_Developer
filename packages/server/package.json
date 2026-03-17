@@ -10,20 +10,22 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "hono": "^4.7.4",
-    "@hono/node-server": "^1.14.1",
     "@anthropic-ai/sdk": "^0.39.0",
-    "postgres": "^3.4.5",
+    "@hono/node-server": "^1.14.1",
+    "archiver": "^7.0.1",
+    "hono": "^4.7.4",
     "ioredis": "^5.4.2",
     "jose": "^6.0.8",
-    "archiver": "^7.0.1",
-    "uuid": "^11.1.0"
+    "postgres": "^3.4.5",
+    "uuid": "^11.1.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
-    "vitest": "^3.0.5",
-    "@types/node": "^22.13.0",
     "@types/archiver": "^6.0.3",
-    "@types/uuid": "^10.0.0"
+    "@types/node": "^22.13.0",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.19.2",
+    "vitest": "^3.0.5"
   }
 }
