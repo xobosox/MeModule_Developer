@@ -49,6 +49,8 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
   const model = process.env.CLAUDE_MODEL ?? "claude-sonnet-4-6";
   const client = new Anthropic();
 
+  console.log(`Calling Claude ${model} with ${messages.length} messages, ${(params.tools ?? toolDefinitions).length} tools, system prompt length: ${systemPrompt.length}`);
+
   const stream = client.messages.stream({
     model,
     max_tokens: 8192,
@@ -57,10 +59,15 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
     tools: params.tools ?? toolDefinitions,
   });
 
+  stream.on("error", (err) => {
+    console.error("Stream error event:", err);
+  });
+
   let currentTextContent = "";
   let currentToolName = "";
   let currentToolInput = "";
 
+  try {
   for await (const event of stream) {
     if (abortSignal?.aborted) {
       stream.abort();
@@ -126,5 +133,11 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
     }
   }
 
+  } catch (streamErr) {
+    console.error("Error during stream iteration:", streamErr);
+    wsSend(ws, { type: "error", content: `Stream error: ${(streamErr as Error).message}` });
+  }
+
+  console.log("Stream complete, sending generation_complete");
   wsSend(ws, { type: "generation_complete" });
 }
