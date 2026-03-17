@@ -9,10 +9,22 @@ import {
   appendMessage,
   updateFile,
   getTemplate,
+  updateProjectPhase,
+  updatePlanContent,
+  updateDesignContent,
 } from "../db/queries.js";
 import { buildSystemPrompt } from "../ai/system-prompt.js";
 import { buildMessageHistory } from "../ai/context-manager.js";
 import { streamAiResponse, type ToolCallOutput } from "../ai/stream-processor.js";
+import {
+  parseCommand,
+  classifyIntent,
+  resolveCommand,
+  buildAgentSystemPrompt,
+  runReviewLoop,
+} from "../ai/orchestrator.js";
+import { getAgent, filterTools } from "../ai/agents/index.js";
+import { loadSkills } from "../ai/skills/domain/loader.js";
 import type { ConversationMessage, ToolCallResult } from "../lib/types.js";
 
 function wsSend(ws: WebSocket, data: unknown): void {
@@ -88,7 +100,7 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
             abortController = new AbortController();
 
             try {
-              const project = await getProject(sql, auth.projectId);
+              let project = await getProject(sql, auth.projectId);
               if (!project) {
                 wsSend(ws, { type: "error", content: "Project not found" });
                 isGenerating = false;
@@ -111,22 +123,68 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
               };
               await appendMessage(sql, conversation.id, userMsg);
 
-              // Build prompt context
-              let templateName: string | undefined;
-              let templateFileTree: Record<string, string> | undefined;
-              if (project.template_id) {
-                const template = await getTemplate(sql, project.template_id);
-                if (template) {
-                  templateName = template.name;
-                  templateFileTree = template.file_tree;
+              // 1. Parse commands
+              const { command, remainingMessage } = parseCommand(msg.content);
+
+              // 2. Load skills
+              const allSkills = await loadSkills(sql);
+
+              // 3. Route
+              let routing;
+              if (command) {
+                routing = resolveCommand(command, project.phase, allSkills);
+                if (!routing) {
+                  wsSend(ws, { type: "error", content: `Unknown command: /${command}` });
+                  isGenerating = false;
+                  return;
                 }
+              } else {
+                routing = await classifyIntent({
+                  message: remainingMessage,
+                  phase: project.phase,
+                  allSkills,
+                });
               }
 
-              const systemPrompt = buildSystemPrompt({
-                templateName,
-                templateFileTree,
-                fileTree: project.file_tree,
-              });
+              // 4. Phase transition
+              if (routing.phaseTransition && routing.phaseTransition !== project.phase) {
+                await updateProjectPhase(sql, auth.projectId, routing.phaseTransition as typeof project.phase);
+                project = { ...project, phase: routing.phaseTransition as typeof project.phase };
+                wsSend(ws, { type: "phase_changed", phase: routing.phaseTransition, agent: routing.agent });
+              }
+
+              // 5. Build agent prompt
+              const agent = getAgent(routing.agent);
+              let systemPrompt: string;
+              let tools;
+
+              if (agent) {
+                systemPrompt = buildAgentSystemPrompt({
+                  agent,
+                  project,
+                  matchedSkillNames: routing.skills,
+                  allSkills,
+                });
+                // 6. Agent-filtered tools
+                tools = filterTools(agent.tools);
+              } else {
+                // Fallback to legacy prompt if agent not found
+                let templateName: string | undefined;
+                let templateFileTree: Record<string, string> | undefined;
+                if (project.template_id) {
+                  const template = await getTemplate(sql, project.template_id);
+                  if (template) {
+                    templateName = template.name;
+                    templateFileTree = template.file_tree;
+                  }
+                }
+                systemPrompt = buildSystemPrompt({
+                  templateName,
+                  templateFileTree,
+                  fileTree: project.file_tree,
+                });
+                tools = undefined;
+              }
 
               // Build message history (re-fetch to include the new user message)
               const updatedConversation = await getConversationByProjectId(
@@ -137,7 +195,6 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
               const messageHistory = buildMessageHistory(rawMessages);
 
               if (messageHistory.length === 0) {
-                // Fallback: if all messages were filtered out, use the user message directly
                 messageHistory.push({ role: "user", content: msg.content! });
               }
 
@@ -151,6 +208,7 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 systemPrompt,
                 messages: messageHistory,
                 abortSignal: abortController.signal,
+                tools,
                 onChatMessage: (content) => {
                   chatContent = content;
                 },
@@ -161,9 +219,13 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                     content: result.content,
                   });
 
-                  // Side effect: write file to DB
+                  // Side effects: persist tool outputs
                   if (result.type === "file" && result.path) {
                     await updateFile(sql, auth.projectId, result.path, result.content);
+                  } else if (result.type === "plan") {
+                    await updatePlanContent(sql, auth.projectId, result.content);
+                  } else if (result.type === "preview") {
+                    await updateDesignContent(sql, auth.projectId, result.content);
                   }
                 },
               });
@@ -176,6 +238,16 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
               };
               await appendMessage(sql, conversation.id, assistantMsg);
+
+              // 7. Auto-review after generation
+              if (routing.agent === "generator" && toolCalls.some(t => t.type === "file")) {
+                await runReviewLoop({
+                  projectId: auth.projectId,
+                  ws,
+                  sql,
+                  abortSignal: abortController.signal,
+                });
+              }
             } catch (err) {
               if ((err as Error).name !== "AbortError") {
                 console.error("AI stream error:", err);
@@ -197,6 +269,11 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
           }
 
           case "file_edited": {
+            const project = await getProject(sql, auth.projectId);
+            if (project && project.phase !== "iterating") {
+              await updateProjectPhase(sql, auth.projectId, "iterating");
+              wsSend(ws, { type: "phase_changed", phase: "iterating", agent: "iterator" });
+            }
             if (msg.path && msg.content !== undefined) {
               await updateFile(sql, auth.projectId, msg.path, msg.content);
             }
@@ -204,8 +281,6 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
           }
 
           case "resume": {
-            // Future enhancement: server-side buffer needed for production
-            // to replay missed messages after reconnection
             wsSend(ws, { type: "resume_ack" });
             break;
           }
