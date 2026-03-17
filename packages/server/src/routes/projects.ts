@@ -8,7 +8,7 @@ import {
   updateProject,
   deleteProject,
 } from "../db/queries.js";
-import { createConversation, getConversationByProjectId } from "../db/queries.js";
+import { createConversation, getConversationByProjectId, getTemplate } from "../db/queries.js";
 
 const projects = new Hono<AppEnv>();
 
@@ -39,13 +39,22 @@ projects.post("/", async (c) => {
     throw new ValidationError("name is required");
   }
 
+  // If a template is specified, load its file_tree
+  let fileTree: Record<string, string> = body.file_tree ?? {};
+  if (body.template_id) {
+    const template = await getTemplate(sql, body.template_id);
+    if (template) {
+      fileTree = template.file_tree;
+    }
+  }
+
   const project = await createProject(
     sql,
     userId,
     body.name,
     body.description ?? null,
     body.template_id ?? null,
-    body.file_tree ?? {}
+    fileTree
   );
 
   // Also create a conversation for the new project
