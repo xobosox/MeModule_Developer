@@ -202,6 +202,7 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
 
               const toolCalls: ToolCallResult[] = [];
               let chatContent = "";
+              const chatParts: string[] = [];
 
               await streamAiResponse({
                 ws,
@@ -210,7 +211,8 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 abortSignal: abortController.signal,
                 tools,
                 onChatMessage: (content) => {
-                  chatContent = content;
+                  // Text content blocks (raw text outside tool calls)
+                  chatParts.push(content);
                 },
                 onToolCall: async (result: ToolCallOutput) => {
                   toolCalls.push({
@@ -218,6 +220,11 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                     path: result.path,
                     content: result.content,
                   });
+
+                  // Capture chat tool call content for conversation history
+                  if (result.type === "chat") {
+                    chatParts.push(result.content);
+                  }
 
                   // Side effects: persist tool outputs
                   if (result.type === "file" && result.path) {
@@ -230,10 +237,13 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 },
               });
 
+              // Combine all chat content (from both text blocks and chat tool calls)
+              chatContent = chatParts.join("\n\n");
+
               // Save assistant message
               const assistantMsg: ConversationMessage = {
                 role: "assistant",
-                content: chatContent,
+                content: chatContent || "[AI responded with tool calls only]",
                 timestamp: new Date().toISOString(),
                 tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
               };
