@@ -1,2 +1,10 @@
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-createRoot(document.getElementById("root")!).render(<div>MeModule Developer</div>);
+import App from "./App";
+import "./index.css";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
