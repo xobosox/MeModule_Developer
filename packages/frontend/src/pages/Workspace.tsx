@@ -8,6 +8,7 @@ import type { WsMessage } from "../lib/types";
 import ChatPanel from "../components/chat/ChatPanel";
 import TabBar from "../components/tabs/TabBar";
 import PlanTab from "../components/tabs/PlanTab";
+import CodeTab from "../components/tabs/CodeTab";
 
 export default function Workspace() {
   const { id } = useParams<{ id: string }>();
@@ -112,9 +113,7 @@ export default function Workspace() {
           <div className="flex-1 overflow-hidden">
             {activeTab === "plan" && <PlanTab content={planContent} />}
             {activeTab === "code" && (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                Code editor (Task 12)
-              </div>
+              <CodeTab onFileEdit={(path, content) => wsRef.current?.sendFileEdit(path, content)} />
             )}
             {activeTab === "preview" && (
               <div className="flex items-center justify-center h-full text-slate-500">
