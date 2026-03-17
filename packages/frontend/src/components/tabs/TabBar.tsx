@@ -22,11 +22,12 @@ export default function TabBar({ activeTab, onTabChange }: TabBarProps) {
         return (
           <button
             key={tab.key}
-            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
+            className="px-4 py-1.5 text-sm font-medium transition-all duration-200 flex items-center gap-2"
             style={{
               background: isActive ? "var(--accent-subtle)" : "transparent",
               color: isActive ? "var(--accent)" : "var(--text-secondary)",
               border: isActive ? "1px solid rgba(1, 14, 208, 0.2)" : "1px solid transparent",
+              borderRadius: "4px",
             }}
             onClick={() => onTabChange(tab.key)}
             onMouseEnter={(e) => {

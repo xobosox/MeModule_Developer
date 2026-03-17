@@ -11,6 +11,7 @@ import PlanTab from "../components/tabs/PlanTab";
 import CodeTab from "../components/tabs/CodeTab";
 import PreviewTab from "../components/tabs/PreviewTab";
 import PhaseIndicator from "../components/workspace/PhaseIndicator";
+import ThemeToggle from "../components/workspace/ThemeToggle";
 
 export default function Workspace() {
   const { id } = useParams<{ id: string }>();
@@ -41,9 +42,6 @@ export default function Workspace() {
           break;
         case "chat":
           if (msg.content) {
-            // Both streaming text deltas and complete tool-call chat messages
-            // use the same appendStreamContent — the store replaces (not appends)
-            // since the server sends accumulated content
             appendStreamContent(msg.content);
           }
           break;
@@ -160,8 +158,10 @@ export default function Workspace() {
 
         <PhaseIndicator phase={phase} activeAgent={activeAgent} />
 
-        {/* Connection status dot */}
-        <div className="flex items-center gap-1.5 ml-auto">
+        {/* Right side: theme toggle, connection status, export */}
+        <div className="flex items-center gap-2 ml-auto">
+          <ThemeToggle />
+
           <div
             className="w-2 h-2 rounded-full"
             style={{

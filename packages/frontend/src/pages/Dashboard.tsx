@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/auth-store";
 import { useProjectStore } from "../store/project-store";
 import ProjectCard from "../components/dashboard/ProjectCard";
 import TemplateCard from "../components/dashboard/TemplateCard";
+import ThemeToggle from "../components/workspace/ThemeToggle";
 import type { Template } from "../lib/types";
 
 export default function Dashboard() {
@@ -63,7 +64,7 @@ export default function Dashboard() {
       <header
         className="sticky top-0 z-50"
         style={{
-          background: "rgba(13, 13, 26, 0.8)",
+          background: "var(--header-bg)",
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid var(--border)",
         }}
@@ -77,6 +78,7 @@ export default function Dashboard() {
             <span className="text-sm font-bold tracking-tight">MeModule Developer</span>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
               style={{ background: "var(--bg-surface-active)", color: "var(--text-secondary)" }}
@@ -217,10 +219,16 @@ export default function Dashboard() {
             </div>
           ) : projects.length === 0 ? (
             <div className="glass-card p-10 text-center">
-              <div className="text-4xl mb-4">
-                <span role="img" aria-label="folder">
-                  {"\u{1F4C2}"}
-                </span>
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{
+                  background: "var(--accent-subtle)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                </svg>
               </div>
               <p className="text-sm mb-1" style={{ color: "var(--text-secondary)" }}>
                 Your projects will appear here.

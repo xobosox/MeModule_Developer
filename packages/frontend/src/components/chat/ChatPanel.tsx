@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "../../store/chat-store";
+import { useWorkspaceStore } from "../../store/workspace-store";
 import ChatMessage from "./ChatMessage";
 import CommandAutocomplete from "./CommandAutocomplete";
 
@@ -15,12 +16,20 @@ const SUGGESTIONS = [
   "I have an idea...",
 ];
 
+const PHASE_LABELS: Record<string, string> = {
+  planning: "Planning",
+  designing: "Designing",
+  generating: "Building",
+  iterating: "Iterating",
+};
+
 export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
   const [input, setInput] = useState("");
   const [showCommands, setShowCommands] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { messages, streamingContent, isStreaming, error } = useChatStore();
+  const phase = useWorkspaceStore((s) => s.phase);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -68,6 +77,7 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
   };
 
   const hasMessages = messages.length > 0 || isStreaming;
+  const phaseLabel = PHASE_LABELS[phase] || "Planning";
 
   return (
     <div className="flex flex-col h-full" style={{ background: "var(--bg-primary)" }}>
@@ -112,10 +122,11 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
                     key={s}
                     onClick={() => handleSuggestionClick(s)}
                     disabled={!isConnected}
-                    className="text-left text-sm px-4 py-3 rounded-xl transition-all duration-200"
+                    className="text-left text-sm px-4 py-3 transition-all duration-200"
                     style={{
                       background: "var(--bg-surface)",
                       border: "1px solid var(--border)",
+                      borderRadius: "4px",
                       color: "var(--text-primary)",
                     }}
                     onMouseEnter={(e) => {
@@ -138,7 +149,7 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
         ) : (
           /* Messages */
           <div className="py-2">
-            {messages.map((msg, i) => (
+            {messages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
 
@@ -149,15 +160,14 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
                 style={{ maxWidth: "85%" }}
               >
                 <div
-                  className="text-sm whitespace-pre-wrap"
+                  className="text-sm chat-markdown"
                   style={{
                     color: "var(--text-primary)",
-                    lineHeight: "1.6",
+                    lineHeight: "1.7",
                   }}
-                >
-                  {streamingContent}
-                  <span className="streaming-dots" />
-                </div>
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(streamingContent) }}
+                />
+                <span className="streaming-dots" />
               </div>
             )}
 
@@ -180,11 +190,12 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
             {error && (
               <div className="px-5 py-3">
                 <div
-                  className="text-sm px-4 py-3 rounded-xl"
+                  className="text-sm px-4 py-3"
                   style={{
                     color: "var(--error)",
                     background: "rgba(239, 68, 68, 0.08)",
                     border: "1px solid rgba(239, 68, 68, 0.2)",
+                    borderRadius: "4px",
                   }}
                 >
                   {error}
@@ -197,7 +208,7 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
         )}
       </div>
 
-      {/* Input area */}
+      {/* Input area -- terminal-inspired */}
       <form
         onSubmit={handleSubmit}
         className="relative p-3"
@@ -209,14 +220,15 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
           visible={showCommands}
           onDismiss={() => setShowCommands(false)}
         />
-        <div
-          className="flex items-end gap-2 rounded-xl"
-          style={{
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border)",
-            padding: "6px 6px 6px 14px",
-          }}
+        <div className="chat-terminal-input flex items-end gap-2"
+          style={{ padding: "6px 6px 6px 0" }}
         >
+          {/* Phase prompt */}
+          <div className="phase-prompt flex items-center pl-3 pb-2.5 pt-2.5">
+            <span>[{phaseLabel}]</span>
+            <span className="ml-1" style={{ color: "var(--text-muted)" }}>&gt;</span>
+          </div>
+
           <textarea
             ref={inputRef}
             value={input}
@@ -226,7 +238,7 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
             placeholder="Type a message or /command..."
             disabled={!isConnected || isStreaming}
             rows={1}
-            className="flex-1 bg-transparent text-sm outline-none resize-none disabled:opacity-50"
+            className="flex-1 bg-transparent text-sm outline-none resize-none disabled:opacity-50 font-mono"
             style={{
               color: "var(--text-primary)",
               height: "44px",
@@ -238,11 +250,12 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
           <button
             type="submit"
             disabled={!isConnected || isStreaming || !input.trim()}
-            className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 disabled:opacity-30"
+            className="flex items-center justify-center w-9 h-9 transition-all duration-200 disabled:opacity-30"
             style={{
               background: input.trim() ? "var(--accent)" : "var(--bg-surface-hover)",
-              color: input.trim() ? "var(--bg-primary)" : "var(--text-muted)",
+              color: input.trim() ? "#ffffff" : "var(--text-muted)",
               flexShrink: 0,
+              borderRadius: "4px",
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -254,4 +267,43 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
       </form>
     </div>
   );
+}
+
+/** Minimal markdown renderer for chat messages */
+function renderMarkdown(text: string): string {
+  // Escape HTML
+  let html = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Code blocks (```...```)
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, _lang, code) => {
+    return `<pre><code>${code.trim()}</code></pre>`;
+  });
+
+  // Inline code (`...`)
+  html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+
+  // Bold (**...**)
+  html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+  // Italic (_..._)
+  html = html.replace(/(?<!\w)_([^_]+)_(?!\w)/g, "<em>$1</em>");
+
+  // Unordered list items (- ...)
+  html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, "<ul>$1</ul>");
+
+  // Paragraphs (double newlines)
+  html = html.replace(/\n\n/g, "</p><p>");
+  html = `<p>${html}</p>`;
+
+  // Clean up empty paragraphs
+  html = html.replace(/<p>\s*<\/p>/g, "");
+
+  // Single newlines to <br> (but not inside pre)
+  html = html.replace(/(?<!<\/li>)\n(?!<)/g, "<br>");
+
+  return html;
 }

@@ -2,6 +2,34 @@
 
 @layer base {
   :root {
+    /* Light mode (default) */
+    --bg-primary: #f5f5f7;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f0f0f5;
+    --bg-surface-active: #e8e8f0;
+    --border: rgba(0, 0, 0, 0.1);
+    --border-hover: rgba(0, 0, 0, 0.2);
+    --text-primary: #242627;
+    --text-secondary: #6b6b7b;
+    --text-muted: #9494a8;
+    --accent: #010ED0;
+    --accent-hover: #0015f0;
+    --accent-subtle: rgba(1, 14, 208, 0.08);
+    --accent-glow: rgba(1, 14, 208, 0.15);
+    --accent-secondary: #858dff;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --surface-light: #e6e7fa;
+    --code-bg: #1e1e2e;
+    --code-text: #e4e4e7;
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+    --shadow-card-hover: 0 2px 8px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.06);
+    --header-bg: rgba(245, 245, 247, 0.85);
+    --overlay-bg: rgba(245, 245, 247, 0.6);
+  }
+
+  .dark {
     --bg-primary: #0d0d1a;
     --bg-surface: #141428;
     --bg-surface-hover: #1a1a40;
@@ -13,13 +41,19 @@
     --text-muted: #64648a;
     --accent: #010ED0;
     --accent-hover: #2030e8;
-    --accent-subtle: rgba(1, 14, 208, 0.1);
-    --accent-glow: rgba(1, 14, 208, 0.2);
+    --accent-subtle: rgba(1, 14, 208, 0.15);
+    --accent-glow: rgba(1, 14, 208, 0.25);
     --accent-secondary: #858dff;
     --success: #10b981;
     --error: #ef4444;
     --warning: #f59e0b;
-    --surface-light: #e6e7fa;
+    --surface-light: #1a1a40;
+    --code-bg: #0d0d1a;
+    --code-text: #e4e4e7;
+    --shadow-card: none;
+    --shadow-card-hover: none;
+    --header-bg: rgba(13, 13, 26, 0.85);
+    --overlay-bg: rgba(13, 13, 26, 0.6);
   }
 
   body {
@@ -39,13 +73,14 @@
   .glass-card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
     transition: all 0.2s ease;
   }
   .glass-card:hover {
     border-color: var(--border-hover);
     background: var(--bg-surface-hover);
+    box-shadow: var(--shadow-card-hover);
   }
   .accent-glow {
     box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(1, 14, 208, 0.05);
@@ -55,7 +90,7 @@
     color: #ffffff;
     font-weight: 600;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 4px;
     transition: all 0.2s ease;
     font-size: 14px;
   }
@@ -73,7 +108,7 @@
     color: var(--text-primary);
     font-weight: 500;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 4px;
     transition: all 0.2s ease;
     font-size: 14px;
   }
@@ -86,7 +121,7 @@
     border: 1px solid var(--border);
     color: var(--text-primary);
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: 4px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s ease;
@@ -122,6 +157,70 @@
   /* Skeleton pulse for loading states */
   .skeleton-pulse {
     animation: skeletonPulse 1.5s ease-in-out infinite;
+  }
+
+  /* Chat terminal input */
+  .chat-terminal-input {
+    font-family: 'JetBrains Mono', monospace;
+    border-left: 2px solid var(--accent);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    border-radius: 0 4px 4px 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .chat-terminal-input:focus-within {
+    border-left-color: var(--accent-hover);
+    box-shadow: -2px 0 8px var(--accent-glow);
+  }
+
+  /* Phase prompt badge */
+  .phase-prompt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* Markdown in chat: code blocks always dark */
+  .chat-markdown pre {
+    background: var(--code-bg) !important;
+    color: var(--code-text) !important;
+    border-radius: 4px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 8px 0;
+    border: 1px solid var(--border);
+  }
+  .chat-markdown code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+  .chat-markdown :not(pre) > code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .chat-markdown ul,
+  .chat-markdown ol {
+    padding-left: 1.5em;
+    margin: 6px 0;
+  }
+  .chat-markdown li {
+    margin: 2px 0;
+  }
+  .chat-markdown p {
+    margin: 4px 0;
+  }
+  .chat-markdown strong {
+    font-weight: 600;
   }
 
   @keyframes gradient-shift {

@@ -91,12 +91,13 @@ export default function CommandAutocomplete({
 
   return (
     <div
-      className="absolute bottom-full left-3 right-3 mb-2 rounded-xl overflow-hidden z-10 max-h-72 overflow-y-auto"
+      className="absolute bottom-full left-3 right-3 mb-2 overflow-hidden z-10 max-h-72 overflow-y-auto"
       style={{
         background: "var(--bg-surface)",
         border: "1px solid var(--border)",
+        borderRadius: "4px",
         backdropFilter: "blur(12px)",
-        boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.4)",
+        boxShadow: "0 -8px 32px rgba(0, 0, 0, 0.2)",
         animation: "commandSlideUp 0.15s ease-out",
       }}
     >

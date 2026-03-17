@@ -113,7 +113,7 @@ export default function PreviewFrame({ onFixWithAi }: PreviewFrameProps) {
         style={{
           width: 375 + 24,
           height: 667 + 24,
-          background: "#1a1a40",
+          background: "var(--surface-light)",
           border: "1px solid var(--border)",
         }}
       >
@@ -123,7 +123,7 @@ export default function PreviewFrame({ onFixWithAi }: PreviewFrameProps) {
           style={{
             width: "100px",
             height: "28px",
-            background: "#1a1a40",
+            background: "var(--surface-light)",
             borderBottomLeftRadius: "14px",
             borderBottomRightRadius: "14px",
           }}
@@ -138,16 +138,16 @@ export default function PreviewFrame({ onFixWithAi }: PreviewFrameProps) {
               backdropFilter: "blur(8px)",
             }}
           >
-            <span className="text-xs font-semibold text-gray-900">9:41</span>
+            <span className="text-xs font-semibold" style={{ color: "#1a1a40" }}>9:41</span>
             <div className="flex items-center gap-1">
-              <svg width="16" height="12" viewBox="0 0 16 12" fill="#1a1a40">
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor">
                 <rect x="0" y="7" width="3" height="5" rx="0.5" />
                 <rect x="4.5" y="4.5" width="3" height="7.5" rx="0.5" />
                 <rect x="9" y="2" width="3" height="10" rx="0.5" />
                 <rect x="13.5" y="0" width="2.5" height="12" rx="0.5" opacity="0.3" />
               </svg>
-              <svg width="20" height="12" viewBox="0 0 20 12" fill="#1a1a40">
-                <rect x="0" y="1" width="16" height="10" rx="2" stroke="#1a1a40" strokeWidth="1" fill="none" />
+              <svg width="20" height="12" viewBox="0 0 20 12" fill="currentColor">
+                <rect x="0" y="1" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1" fill="none" />
                 <rect x="1.5" y="2.5" width="11" height="7" rx="1" />
                 <rect x="17" y="4" width="2" height="4" rx="0.5" />
               </svg>

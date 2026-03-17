@@ -8,15 +8,16 @@ export default function ErrorOverlay({ error, onFixWithAi }: ErrorOverlayProps) 
     <div
       className="absolute inset-0 z-50 flex flex-col p-6 overflow-auto"
       style={{
-        background: "rgba(13, 13, 26, 0.95)",
+        background: "var(--overlay-bg)",
         backdropFilter: "blur(8px)",
       }}
     >
       <div
-        className="rounded-xl p-5 flex flex-col flex-1"
+        className="p-5 flex flex-col flex-1"
         style={{
           background: "var(--bg-surface)",
           border: "1px solid rgba(239, 68, 68, 0.3)",
+          borderRadius: "12px",
         }}
       >
         <div className="flex items-center gap-2 mb-4">

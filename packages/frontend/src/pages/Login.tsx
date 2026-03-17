@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { setToken } from "../lib/auth";
+import ThemeToggle from "../components/workspace/ThemeToggle";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -37,13 +38,18 @@ export default function Login() {
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{ background: "var(--bg-primary)" }}
     >
+      {/* Theme toggle in corner */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+
       {/* Animated gradient background */}
       <div
         className="absolute inset-0 opacity-30"
         style={{
           background:
             "radial-gradient(ellipse at 20% 50%, rgba(1, 14, 208, 0.2) 0%, transparent 50%), " +
-            "radial-gradient(ellipse at 80% 20%, rgba(26, 26, 64, 0.4) 0%, transparent 50%), " +
+            "radial-gradient(ellipse at 80% 20%, rgba(133, 141, 255, 0.15) 0%, transparent 50%), " +
             "radial-gradient(ellipse at 50% 80%, rgba(1, 14, 208, 0.12) 0%, transparent 50%)",
           animation: "gradient-shift 15s ease infinite",
           backgroundSize: "200% 200%",
