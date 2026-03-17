@@ -39,6 +39,8 @@ export interface StreamParams {
 function wsSend(ws: WebSocket, data: unknown): void {
   if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify(data));
+  } else {
+    console.warn(`WebSocket not open (state=${ws.readyState}), dropping message:`, JSON.stringify(data).slice(0, 100));
   }
 }
 
@@ -116,19 +118,26 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
         }
 
         if (currentToolName) {
+          console.log(`Tool call completed: ${currentToolName}, input length: ${currentToolInput.length}`);
           try {
             const input = JSON.parse(currentToolInput || "{}");
             const result = processToolCall(currentToolName, input);
             if (result) {
+              console.log(`Tool result: type=${result.type}, path=${result.path ?? "none"}, content length=${result.content?.length ?? 0}`);
               wsSend(ws, {
                 type: result.type,
                 path: result.path,
                 content: result.content,
               });
-              onToolCall?.(result);
+              if (onToolCall) {
+                await onToolCall(result);
+              }
+            } else {
+              console.log(`processToolCall returned null for tool: ${currentToolName}`);
             }
-          } catch {
-            console.error("Failed to parse tool input:", currentToolInput);
+          } catch (err) {
+            console.error(`Failed to parse/process tool "${currentToolName}":`, err);
+            console.error("Tool input (first 200 chars):", currentToolInput.slice(0, 200));
           }
           currentToolName = "";
           currentToolInput = "";
