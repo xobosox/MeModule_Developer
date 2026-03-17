@@ -9,6 +9,7 @@ import ChatPanel from "../components/chat/ChatPanel";
 import TabBar from "../components/tabs/TabBar";
 import PlanTab from "../components/tabs/PlanTab";
 import CodeTab from "../components/tabs/CodeTab";
+import PreviewTab from "../components/tabs/PreviewTab";
 
 export default function Workspace() {
   const { id } = useParams<{ id: string }>();
@@ -116,9 +117,9 @@ export default function Workspace() {
               <CodeTab onFileEdit={(path, content) => wsRef.current?.sendFileEdit(path, content)} />
             )}
             {activeTab === "preview" && (
-              <div className="flex items-center justify-center h-full text-slate-500">
-                Preview (Task 13)
-              </div>
+              <PreviewTab onFixWithAi={(error) => {
+                handleSend(`Fix this error in the preview:\n\n${error}`);
+              }} />
             )}
           </div>
         </div>
