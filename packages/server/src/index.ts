@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import type { Server } from "node:http";
 import postgres from "postgres";
 import { migrate } from "./db/schema.js";
+import { seedTemplates } from "./db/seed-templates.js";
 import { createApp } from "./app.js";
 import { setupWebSocket } from "./routes/ws-chat.js";
 
@@ -16,6 +17,8 @@ async function main() {
   console.log("Running database migrations...");
   await migrate(sql);
   console.log("Migrations complete.");
+
+  await seedTemplates(sql);
 
   const app = createApp(sql, JWT_SECRET);
 
