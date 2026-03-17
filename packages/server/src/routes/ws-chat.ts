@@ -186,19 +186,20 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 tools = undefined;
               }
 
-              // Build message history (re-fetch to include the new user message)
+              // Build message history with context budget tracking
               const updatedConversation = await getConversationByProjectId(
                 sql,
                 auth.projectId
               );
               const rawMessages = updatedConversation?.messages ?? [userMsg];
-              const messageHistory = buildMessageHistory(rawMessages);
+              const { messages: messageHistory, budget } = await buildMessageHistory(
+                rawMessages,
+                systemPrompt.length
+              );
 
-              if (messageHistory.length === 0) {
-                messageHistory.push({ role: "user", content: msg.content! });
-              }
-
-              console.log("Sending to Claude:", JSON.stringify(messageHistory.map(m => ({ role: m.role, contentLen: typeof m.content === 'string' ? m.content.length : 'non-string' }))));
+              console.log(
+                `Context: ${budget.originalMessageCount} msgs → ${budget.finalMessageCount} (${budget.budgetUsedPercent}% of budget, ${budget.wasSummarized ? "summarized" : "full"})`
+              );
 
               const toolCalls: ToolCallResult[] = [];
               let chatContent = "";
