@@ -7,12 +7,17 @@ import { createApp } from "./app.js";
 import { setupWebSocket } from "./routes/ws-chat.js";
 
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
-const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgres://localhost:5432/memodule_dev";
+const DATABASE_URL = process.env.DATABASE_URL;
 const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret-change-in-production";
 
 async function main() {
-  const sql = postgres(DATABASE_URL);
+  // Support both connection string and local peer auth via unix socket
+  const sql = DATABASE_URL
+    ? postgres(DATABASE_URL)
+    : postgres({
+        database: process.env.PGDATABASE ?? "memodule_dev",
+        host: "/var/run/postgresql",
+      });
 
   console.log("Running database migrations...");
   await migrate(sql);

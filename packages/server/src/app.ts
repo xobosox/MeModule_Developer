@@ -51,7 +51,7 @@ export function createApp(sql: postgres.Sql, jwtSecret: string) {
   });
 
   // Routes
-  app.route("/health", health);
+  app.route("/api/health", health);
   app.route("/api/auth", authRoutes);
   app.route("/api/projects", projects);
   app.route("/api/projects", files);
