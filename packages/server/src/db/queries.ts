@@ -268,9 +268,10 @@ export async function appendMessage(
   conversationId: string,
   message: ConversationMessage
 ): Promise<Conversation | null> {
+  // Use sql.json() to pass JSONB data without double-encoding
   const rows = await sql`
     UPDATE conversations
-    SET messages = messages || ${JSON.stringify([message])}::jsonb,
+    SET messages = messages || ${sql.json([message] as any)}::jsonb,
         updated_at = now()
     WHERE id = ${conversationId}
     RETURNING *, messages::text AS messages_raw
