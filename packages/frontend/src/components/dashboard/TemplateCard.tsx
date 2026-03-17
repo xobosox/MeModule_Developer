@@ -5,18 +5,56 @@ interface TemplateCardProps {
   onUse: (template: Template) => void;
 }
 
+const categoryIcons: Record<string, string> = {
+  identity: "\u{1F464}",
+  finance: "\u{1F4B0}",
+  travel: "\u{2708}\u{FE0F}",
+  health: "\u{1F3E5}",
+  social: "\u{1F91D}",
+  utility: "\u{2699}\u{FE0F}",
+};
+
 export default function TemplateCard({ template, onUse }: TemplateCardProps) {
+  const icon = categoryIcons[template.category.toLowerCase()] || "\u{1F4E6}";
+
   return (
-    <div className="bg-slate-800 rounded-lg p-4">
-      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-900 text-blue-300">
-        {template.category}
-      </span>
-      <h3 className="text-white font-semibold mt-2">{template.name}</h3>
-      <p className="text-slate-400 text-sm line-clamp-2 mt-1 mb-3">
+    <div className="glass-card p-5 flex flex-col group hover:accent-glow">
+      {/* Category badge */}
+      <div className="flex items-center gap-2 mb-3">
+        <span
+          className="text-[11px] font-medium px-2 py-0.5 rounded-full"
+          style={{
+            background: "var(--accent-subtle)",
+            color: "var(--accent)",
+          }}
+        >
+          {template.category}
+        </span>
+      </div>
+
+      {/* Icon + Name */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-lg">{icon}</span>
+        <h3
+          className="font-semibold text-sm"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {template.name}
+        </h3>
+      </div>
+
+      {/* Description */}
+      <p
+        className="text-xs leading-relaxed line-clamp-2 mb-4 flex-1"
+        style={{ color: "var(--text-muted)" }}
+      >
         {template.description}
       </p>
+
+      {/* Use button */}
       <button
-        className="w-full text-sm bg-blue-600 hover:bg-blue-500 text-white py-1.5 rounded transition-colors"
+        className="btn-secondary w-full text-xs group-hover:border-[var(--accent)] group-hover:text-[var(--accent)] transition-colors"
+        style={{ padding: "8px 16px" }}
         onClick={() => onUse(template)}
       >
         Use Template
