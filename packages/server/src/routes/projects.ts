@@ -51,7 +51,8 @@ projects.post("/", async (c) => {
   // Also create a conversation for the new project
   const conversation = await createConversation(sql, project.id);
 
-  return c.json({ project, conversation }, 201);
+  // Return just the project (conversation is internal)
+  return c.json(project, 201);
 });
 
 // Get project by id

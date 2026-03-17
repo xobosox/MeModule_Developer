@@ -73,11 +73,11 @@ export class WsClient {
   }
 
   sendMessage(content: string): void {
-    this.ws?.send(JSON.stringify({ type: "chat", content }));
+    this.ws?.send(JSON.stringify({ type: "user_message", content }));
   }
 
   sendFileEdit(path: string, content: string): void {
-    this.ws?.send(JSON.stringify({ type: "file_edit", path, content }));
+    this.ws?.send(JSON.stringify({ type: "file_edited", path, content }));
   }
 
   sendCancel(): void {

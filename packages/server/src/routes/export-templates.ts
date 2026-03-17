@@ -11,15 +11,19 @@ export function packageJsonTemplate(name: string): string {
         preview: "vite preview",
       },
       dependencies: {
-        react: "^18.2.0",
-        "react-dom": "^18.2.0",
+        react: "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^7.1.5",
+        zustand: "^5.0.11",
       },
       devDependencies: {
-        "@types/react": "^18.2.0",
-        "@types/react-dom": "^18.2.0",
-        "@vitejs/plugin-react": "^4.2.0",
-        typescript: "^5.3.0",
-        vite: "^5.0.0",
+        "@types/react": "^18.3.18",
+        "@types/react-dom": "^18.3.5",
+        "@vitejs/plugin-react": "^4.3.4",
+        "@tailwindcss/vite": "^4.1.18",
+        tailwindcss: "^4.1.18",
+        typescript: "^5.7.3",
+        vite: "^6.1.0",
       },
     },
     null,
@@ -29,9 +33,11 @@ export function packageJsonTemplate(name: string): string {
 
 export const viteConfigTemplate = `import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  base: "./",
 });
 `;
 

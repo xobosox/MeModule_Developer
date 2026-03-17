@@ -66,7 +66,7 @@ export const api = {
 
   updateProject(id: string, data: Partial<Project>) {
     return request<Project>(`/api/projects/${id}`, {
-      method: "PATCH",
+      method: "PUT",
       body: JSON.stringify(data),
     });
   },
@@ -96,9 +96,9 @@ export const api = {
   },
 
   getWsTicket(projectId: string) {
-    return request<{ ticket: string }>(
-      `/api/projects/${projectId}/ws-ticket`,
-      { method: "POST" },
-    );
+    return request<{ ticket: string }>(`/api/auth/ws-ticket`, {
+      method: "POST",
+      body: JSON.stringify({ projectId }),
+    });
   },
 };

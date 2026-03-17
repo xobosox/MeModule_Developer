@@ -182,14 +182,17 @@ export function buildSystemPrompt(context: PromptContext): string {
     prompt += `\n## Template Context\nYou are working with the "${context.templateName}" template.\n`;
 
     if (context.templateFileTree) {
-      const fileList = Object.keys(context.templateFileTree).join("\n  ");
-      prompt += `\nTemplate files:\n  ${fileList}\n`;
+      for (const [path, content] of Object.entries(context.templateFileTree)) {
+        prompt += `\n### ${path}\n\`\`\`\n${content}\n\`\`\`\n`;
+      }
     }
   }
 
-  if (context.fileTree) {
-    const fileList = Object.keys(context.fileTree).join("\n  ");
-    prompt += `\n## Current Project Files\n  ${fileList}\n`;
+  if (context.fileTree && Object.keys(context.fileTree).length > 0) {
+    prompt += `\n## Current Project Files\nThe project currently contains these files:\n`;
+    for (const [path, content] of Object.entries(context.fileTree)) {
+      prompt += `\n### ${path}\n\`\`\`\n${content}\n\`\`\`\n`;
+    }
   }
 
   return prompt;

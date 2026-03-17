@@ -35,9 +35,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   appendStreamContent: (content: string) => {
-    set((state) => ({
-      streamingContent: state.streamingContent + content,
-    }));
+    // Server sends full accumulated text (not deltas), so replace rather than append
+    set({ streamingContent: content });
   },
 
   finalizeStream: () => {
