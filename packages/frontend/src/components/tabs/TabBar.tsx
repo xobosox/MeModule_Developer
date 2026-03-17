@@ -1,4 +1,4 @@
-type Tab = "plan" | "code" | "preview";
+type Tab = "plan" | "design" | "code" | "preview";
 
 interface TabBarProps {
   activeTab: Tab;
@@ -7,6 +7,7 @@ interface TabBarProps {
 
 const tabs: { key: Tab; label: string; icon: string }[] = [
   { key: "plan", label: "Plan", icon: "\uD83D\uDCCB" },
+  { key: "design", label: "Design", icon: "\uD83C\uDFA8" },
   { key: "code", label: "Code", icon: "\uD83D\uDCBB" },
   { key: "preview", label: "Preview", icon: "\uD83D\uDCF1" },
 ];

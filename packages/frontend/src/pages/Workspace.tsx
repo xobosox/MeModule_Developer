@@ -8,6 +8,7 @@ import type { WsMessage } from "../lib/types";
 import ChatPanel from "../components/chat/ChatPanel";
 import TabBar from "../components/tabs/TabBar";
 import PlanTab from "../components/tabs/PlanTab";
+import DesignTab from "../components/tabs/DesignTab";
 import CodeTab from "../components/tabs/CodeTab";
 import PreviewTab from "../components/tabs/PreviewTab";
 import PhaseIndicator from "../components/workspace/PhaseIndicator";
@@ -22,7 +23,7 @@ export default function Workspace() {
   const { currentProject, loadProject, updateFile } = useProjectStore();
   const { addUserMessage, startStreaming, appendStreamContent, finalizeStream, setError, clearMessages } =
     useChatStore();
-  const { activeTab, setActiveTab, planContent, setPlanContent, setPreviewContent, phase, activeAgent, setPhase, setActiveAgent, reset } =
+  const { activeTab, setActiveTab, planContent, setPlanContent, designContent, setDesignContent, phase, activeAgent, setPhase, setActiveAgent, reset } =
     useWorkspaceStore();
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function Workspace() {
           break;
         case "preview":
           if (msg.content) {
-            setPreviewContent(msg.content);
+            setDesignContent(msg.content);
           }
           break;
         case "plan":
@@ -206,6 +207,7 @@ export default function Workspace() {
           <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
           <div className="flex-1 overflow-hidden">
             {activeTab === "plan" && <PlanTab content={planContent} />}
+            {activeTab === "design" && <DesignTab content={designContent} />}
             {activeTab === "code" && (
               <CodeTab onFileEdit={(path, content) => wsRef.current?.sendFileEdit(path, content)} />
             )}

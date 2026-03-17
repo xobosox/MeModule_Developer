@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-type ActiveTab = "plan" | "code" | "preview";
+type ActiveTab = "plan" | "design" | "code" | "preview";
 type Phase = "planning" | "designing" | "generating" | "iterating";
 
 interface WorkspaceState {
@@ -8,14 +8,14 @@ interface WorkspaceState {
   selectedFile: string | null;
   openFiles: string[];
   planContent: string;
-  previewContent: string;
+  designContent: string;
   phase: Phase;
   activeAgent: string | null;
   setActiveTab: (tab: ActiveTab) => void;
   selectFile: (path: string) => void;
   closeFile: (path: string) => void;
   setPlanContent: (content: string) => void;
-  setPreviewContent: (content: string) => void;
+  setDesignContent: (content: string) => void;
   setPhase: (phase: Phase) => void;
   setActiveAgent: (agent: string | null) => void;
   reset: () => void;
@@ -26,7 +26,7 @@ const initialState = {
   selectedFile: null as string | null,
   openFiles: [] as string[],
   planContent: "",
-  previewContent: "",
+  designContent: "",
   phase: "planning" as Phase,
   activeAgent: null as string | null,
 };
@@ -63,8 +63,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set) => ({
     set({ planContent: content, activeTab: "plan" });
   },
 
-  setPreviewContent: (content: string) => {
-    set({ previewContent: content, activeTab: "preview" });
+  setDesignContent: (content: string) => {
+    set({ designContent: content, activeTab: "design" });
   },
 
   setPhase: (phase: Phase) => {
