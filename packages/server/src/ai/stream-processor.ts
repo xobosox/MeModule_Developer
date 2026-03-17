@@ -67,8 +67,13 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
   let currentToolName = "";
   let currentToolInput = "";
 
+  let eventCount = 0;
   try {
   for await (const event of stream) {
+    eventCount++;
+    if (eventCount <= 5) {
+      console.log(`Stream event #${eventCount}: type=${event.type}`, event.type === "content_block_start" ? `block_type=${(event as any).content_block?.type}` : "");
+    }
     if (abortSignal?.aborted) {
       stream.abort();
       break;
@@ -138,6 +143,6 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
     wsSend(ws, { type: "error", content: `Stream error: ${(streamErr as Error).message}` });
   }
 
-  console.log("Stream complete, sending generation_complete");
+  console.log(`Stream complete after ${eventCount} events, sending generation_complete`);
   wsSend(ws, { type: "generation_complete" });
 }
