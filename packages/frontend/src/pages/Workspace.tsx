@@ -40,7 +40,10 @@ export default function Workspace() {
           setIsConnected(true);
           break;
         case "chat":
-          if (msg.streaming && msg.content) {
+          if (msg.content) {
+            // Both streaming text deltas and complete tool-call chat messages
+            // use the same appendStreamContent — the store replaces (not appends)
+            // since the server sends accumulated content
             appendStreamContent(msg.content);
           }
           break;
