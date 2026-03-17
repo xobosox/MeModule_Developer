@@ -128,6 +128,14 @@ Given the user's message and the current project phase, decide:
 2. Whether the project should transition to a new phase
 3. Which domain skills (if any) are relevant
 
+Phase transition rules:
+- If in "planning" and user approves/likes the plan ("looks good", "yes", "perfect", "let's go", "approved", "build it"), transition to "designing"
+- If in "designing" and user approves the design ("looks good", "build it", "generate", "let's code"), transition to "generating"
+- If in "generating" and code is complete, transition to "iterating"
+- If user asks a question about how something works, route to "explainer" WITHOUT changing phase
+- If user wants to make changes to existing code, route to "iterator"
+- STAY in the current phase unless the user clearly wants to move forward
+
 Current phase: ${phase}
 Available agents for this phase: ${agentNames}
 Available skills: ${skillList}

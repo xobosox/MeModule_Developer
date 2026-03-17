@@ -153,6 +153,8 @@ export function setupWebSocket(server: Server, sql: postgres.Sql): void {
                 wsSend(ws, { type: "phase_changed", phase: routing.phaseTransition, agent: routing.agent });
               }
 
+              console.log(`Routing: agent=${routing.agent}, phase=${project.phase}, transition=${routing.phaseTransition ?? "none"}, skills=${routing.skills.join(",") || "none"}`);
+
               // 5. Build agent prompt
               const agent = getAgent(routing.agent);
               let systemPrompt: string;

@@ -55,7 +55,7 @@ export async function streamAiResponse(params: StreamParams): Promise<void> {
 
   const stream = client.messages.stream({
     model,
-    max_tokens: 8192,
+    max_tokens: 16384,
     system: systemPrompt,
     messages,
     tools: params.tools ?? toolDefinitions,
