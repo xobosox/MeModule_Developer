@@ -44,15 +44,46 @@ export default function PlanTab({ content }: PlanTabProps) {
     );
   }
 
+  const styledContent = `
+    <!DOCTYPE html>
+    <html><head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: #0d0d1a;
+        color: #e4e4e7;
+        padding: 24px;
+        line-height: 1.7;
+      }
+      h1, h2, h3 { color: #ffffff; margin-top: 24px; margin-bottom: 12px; }
+      h1 { font-size: 24px; font-weight: 700; }
+      h2 { font-size: 20px; font-weight: 600; }
+      h3 { font-size: 16px; font-weight: 600; }
+      p { margin-bottom: 12px; }
+      ul, ol { margin-bottom: 12px; padding-left: 20px; }
+      li { margin-bottom: 4px; }
+      code { background: #1a1a40; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+      pre { background: #1a1a40; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 12px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+      th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #2a2a42; }
+      th { color: #a1a1b5; font-weight: 600; font-size: 13px; }
+      a { color: #4f6fff; }
+      strong { color: #ffffff; }
+      hr { border: none; border-top: 1px solid #2a2a42; margin: 24px 0; }
+    </style>
+    </head><body>${content}</body></html>
+  `;
+
   return (
-    <div
-      className="p-6 prose prose-invert prose-sm max-w-none overflow-y-auto h-full"
-      style={{
-        background: "var(--bg-primary)",
-        color: "var(--text-primary)",
-        lineHeight: "1.7",
-      }}
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
+    <div className="h-full overflow-hidden" style={{ background: "var(--bg-primary)" }}>
+      <iframe
+        srcDoc={styledContent}
+        sandbox="allow-scripts"
+        className="w-full h-full border-0"
+        title="Module Plan"
+      />
+    </div>
   );
 }

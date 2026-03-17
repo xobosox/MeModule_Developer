@@ -52,6 +52,7 @@ export default function Workspace() {
           }
           break;
         case "preview":
+          console.log("Received show_preview content, length:", msg.content?.length);
           if (msg.content) {
             setDesignContent(msg.content);
           }

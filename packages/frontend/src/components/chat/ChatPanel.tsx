@@ -157,8 +157,9 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
             {isStreaming && streamingContent && (
               <div
                 className="px-5 py-4 chat-message-enter"
-                style={{ maxWidth: "85%" }}
+                style={{ maxWidth: "85%", position: "relative" }}
               >
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "var(--accent)", animation: "streamingBar 1.5s ease-in-out infinite", borderRadius: "1px" }} />
                 <div
                   className="text-sm chat-markdown"
                   style={{
@@ -173,16 +174,13 @@ export default function ChatPanel({ onSend, isConnected }: ChatPanelProps) {
 
             {/* Thinking indicator */}
             {isStreaming && !streamingContent && (
-              <div className="px-5 py-4 chat-message-enter">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-sm"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    Thinking
-                  </span>
-                  <span className="streaming-dots" />
+              <div className="chat-message-enter" style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", animation: "thinkingDot 1.4s ease-in-out infinite", animationDelay: "0s" }} />
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", animation: "thinkingDot 1.4s ease-in-out infinite", animationDelay: "0.2s" }} />
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)", animation: "thinkingDot 1.4s ease-in-out infinite", animationDelay: "0.4s" }} />
                 </div>
+                <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>AI is thinking...</span>
               </div>
             )}
 
